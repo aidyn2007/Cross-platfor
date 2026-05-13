@@ -38,4 +38,17 @@ class BookTag {
       amount: amount ?? this.amount,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BookTag &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          bookId == other.bookId &&
+          name == other.name &&
+          amount == other.amount;
+
+  @override
+  int get hashCode => Object.hash(id, bookId, name, amount);
 }
