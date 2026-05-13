@@ -34,8 +34,6 @@ flowchart LR
         direction TB
         CartManager
         OrderManager
-        YummyAuth
-        AppCache
         UserDao
         MessageDao
         MemoryRepository
@@ -219,20 +217,6 @@ sources (Firebase, in-memory mock, Chopper REST services, SharedPreferences).
 classDiagram
     direction TB
 
-    class YummyAuth {
-        -bool _loggedIn
-        -AppCache _appCache
-        +loggedIn Future~bool~
-        +signIn(username, password) Future~bool~
-        +signOut() Future~void~
-    }
-
-    class AppCache {
-        +invalidate() Future~void~
-        +cacheUser() Future~void~
-        +isUserLoggedIn() Future~bool~
-    }
-
     class UserDao {
         -FirebaseAuth auth
         +isLoggedIn() bool
@@ -295,7 +279,6 @@ classDiagram
         +List~Post~ friendPosts
     }
 
-    YummyAuth o-- AppCache
     MessageDao o-- UserDao
     MessageDao ..> Message : produces
     MemoryRepository ..> Book : CRUD
@@ -384,7 +367,6 @@ flowchart TD
 
     CategoryCard -. push .-> BookDetailsPage
 
-    ChatPage --> Login
     ChatPage --> MessageList
     MessageList --> MessageWidget
 
@@ -397,29 +379,35 @@ flowchart TD
 
 ---
 
-## 6. End-to-end data flow for the "Chat" feature
+## 6. End-to-end data flow for authentication and chat
 
-A concrete example of how the layers interact for a single user action
-(sending a chat message):
+A concrete example of how the layers interact across two user actions
+(logging in on startup, then sending a chat message):
 
 ```mermaid
 sequenceDiagram
     actor User
+    participant App as Yummy (GoRouter)
+    participant LoginPage
+    participant UserDao
+    participant FirebaseAuth
     participant ChatPage
     participant MessageList
     participant MessageDao
-    participant UserDao
     participant Firestore as Cloud Firestore
 
+    User->>App: launch app
+    App->>UserDao: isLoggedIn()
+    UserDao-->>App: false
+    App->>LoginPage: redirect to /login
+    User->>LoginPage: enter email and password, tap Login / Sign Up
+    LoginPage->>UserDao: login() or signup()
+    UserDao->>FirebaseAuth: signInWithEmailAndPassword / createUserWithEmailAndPassword
+    FirebaseAuth-->>UserDao: User
+    UserDao-->>App: notifyListeners()
+    App->>App: redirect to /0 (Explore)
+
     User->>ChatPage: open Chat tab
-    ChatPage->>UserDao: isLoggedIn()
-    alt not logged in
-        ChatPage-->>User: show Login form
-        User->>UserDao: signup(email, password)
-        UserDao->>Firestore: createUserWithEmailAndPassword
-        Firestore-->>UserDao: User
-        UserDao-->>ChatPage: notifyListeners()
-    end
     ChatPage->>MessageList: render
     MessageList->>MessageDao: getMessageStream()
     MessageDao->>Firestore: collection('messages').snapshots()
