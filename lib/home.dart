@@ -5,7 +5,7 @@ import '../components/components.dart';
 import '../models/models.dart';
 import '../screens/screens.dart';
 import 'ui/library/library_page.dart';
-import 'ui/recipes/recipe_list.dart';
+import 'ui/recipes/book_list.dart';
 
 class Home extends StatefulWidget {
   const Home({
@@ -78,7 +78,7 @@ class _HomeState extends State<Home> {
           context.go('/1?search=${Uri.encodeQueryComponent(query)}');
         },
       ),
-      RecipeList(initialSearchQuery: widget.initialBookSearchQuery),
+      BookList(initialSearchQuery: widget.initialBookSearchQuery),
       const LibraryPage(),
       MyOrdersPage(orderManager: widget.ordersManager),
       AccountPage(

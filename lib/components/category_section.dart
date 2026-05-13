@@ -3,7 +3,7 @@ import '../components/components.dart';
 import '../models/models.dart';
 
 class CategorySection extends StatelessWidget {
-  final List<FoodCategory> categories;
+  final List<BookCategory> categories;
   const CategorySection({super.key, required this.categories});
 
   @override

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 
-class RestaurantItem extends StatelessWidget {
-  final Item item;
+class BookstoreItem extends StatelessWidget {
+  final Book item;
 
-  const RestaurantItem({super.key, required this.item});
+  const BookstoreItem({super.key, required this.item});
 
   @override
   Widget build(BuildContext context) {

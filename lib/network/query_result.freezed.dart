@@ -23,7 +23,7 @@ mixin _$QueryResult {
   int get offset => throw _privateConstructorUsedError;
   int get number => throw _privateConstructorUsedError;
   int get totalResults => throw _privateConstructorUsedError;
-  List<Recipe> get recipes => throw _privateConstructorUsedError;
+  List<Book> get books => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -37,7 +37,7 @@ abstract class $QueryResultCopyWith<$Res> {
           QueryResult value, $Res Function(QueryResult) then) =
       _$QueryResultCopyWithImpl<$Res, QueryResult>;
   @useResult
-  $Res call({int offset, int number, int totalResults, List<Recipe> recipes});
+  $Res call({int offset, int number, int totalResults, List<Book> books});
 }
 
 /// @nodoc
@@ -56,7 +56,7 @@ class _$QueryResultCopyWithImpl<$Res, $Val extends QueryResult>
     Object? offset = null,
     Object? number = null,
     Object? totalResults = null,
-    Object? recipes = null,
+    Object? books = null,
   }) {
     return _then(_value.copyWith(
       offset: null == offset
@@ -71,10 +71,10 @@ class _$QueryResultCopyWithImpl<$Res, $Val extends QueryResult>
           ? _value.totalResults
           : totalResults // ignore: cast_nullable_to_non_nullable
               as int,
-      recipes: null == recipes
-          ? _value.recipes
-          : recipes // ignore: cast_nullable_to_non_nullable
-              as List<Recipe>,
+      books: null == books
+          ? _value.books
+          : books // ignore: cast_nullable_to_non_nullable
+              as List<Book>,
     ) as $Val);
   }
 }
@@ -87,7 +87,7 @@ abstract class _$$_QueryResultCopyWith<$Res>
       __$$_QueryResultCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int offset, int number, int totalResults, List<Recipe> recipes});
+  $Res call({int offset, int number, int totalResults, List<Book> books});
 }
 
 /// @nodoc
@@ -104,7 +104,7 @@ class __$$_QueryResultCopyWithImpl<$Res>
     Object? offset = null,
     Object? number = null,
     Object? totalResults = null,
-    Object? recipes = null,
+    Object? books = null,
   }) {
     return _then(_$_QueryResult(
       offset: null == offset
@@ -119,10 +119,10 @@ class __$$_QueryResultCopyWithImpl<$Res>
           ? _value.totalResults
           : totalResults // ignore: cast_nullable_to_non_nullable
               as int,
-      recipes: null == recipes
+      books: null == books
           ? _value._recipes
-          : recipes // ignore: cast_nullable_to_non_nullable
-              as List<Recipe>,
+          : books // ignore: cast_nullable_to_non_nullable
+              as List<Book>,
     ));
   }
 }
@@ -134,8 +134,8 @@ class _$_QueryResult implements _QueryResult {
       {required this.offset,
       required this.number,
       required this.totalResults,
-      required final List<Recipe> recipes})
-      : _recipes = recipes;
+      required final List<Book> books})
+      : _recipes = books;
 
   factory _$_QueryResult.fromJson(Map<String, dynamic> json) =>
       _$$_QueryResultFromJson(json);
@@ -146,9 +146,9 @@ class _$_QueryResult implements _QueryResult {
   final int number;
   @override
   final int totalResults;
-  final List<Recipe> _recipes;
+  final List<Book> _recipes;
   @override
-  List<Recipe> get recipes {
+  List<Book> get books {
     if (_recipes is EqualUnmodifiableListView) return _recipes;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_recipes);
@@ -156,7 +156,7 @@ class _$_QueryResult implements _QueryResult {
 
   @override
   String toString() {
-    return 'QueryResult(offset: $offset, number: $number, totalResults: $totalResults, recipes: $recipes)';
+    return 'QueryResult(offset: $offset, number: $number, totalResults: $totalResults, books: $books)';
   }
 
   @override
@@ -195,7 +195,7 @@ abstract class _QueryResult implements QueryResult {
       {required final int offset,
       required final int number,
       required final int totalResults,
-      required final List<Recipe> recipes}) = _$_QueryResult;
+      required final List<Book> books}) = _$_QueryResult;
 
   factory _QueryResult.fromJson(Map<String, dynamic> json) =
       _$_QueryResult.fromJson;
@@ -207,7 +207,7 @@ abstract class _QueryResult implements QueryResult {
   @override
   int get totalResults;
   @override
-  List<Recipe> get recipes;
+  List<Book> get books;
   @override
   @JsonKey(ignore: true)
   _$$_QueryResultCopyWith<_$_QueryResult> get copyWith =>

@@ -1,79 +1,79 @@
 import 'dart:async';
 import 'dart:core';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/current_recipe_data.dart';
+import '../models/current_book_data.dart';
 import '../models/models.dart';
 import 'repository.dart';
 
-class MemoryRepository extends Notifier<CurrentRecipeData>
+class MemoryRepository extends Notifier<CurrentBookData>
     implements Repository {
-  late Stream<List<Recipe>> _recipeStream;
-  late Stream<List<Ingredient>> _ingredientStream;
-  final StreamController _recipeStreamController =
-      StreamController<List<Recipe>>();
-  final StreamController _ingredientStreamController =
-      StreamController<List<Ingredient>>();
+  late Stream<List<Book>> _bookStream;
+  late Stream<List<BookTag>> _tagStream;
+  final StreamController _bookStreamController =
+      StreamController<List<Book>>();
+  final StreamController _tagStreamController =
+      StreamController<List<BookTag>>();
 
   MemoryRepository() {
-    _recipeStream = _recipeStreamController.stream.asBroadcastStream(
+    _bookStream = _bookStreamController.stream.asBroadcastStream(
       onListen: (subscription) {
-        _recipeStreamController.sink.add(state.currentRecipes);
+        _bookStreamController.sink.add(state.currentBooks);
       },
-    ) as Stream<List<Recipe>>;
-    _ingredientStream = _ingredientStreamController.stream.asBroadcastStream(
+    ) as Stream<List<Book>>;
+    _tagStream = _tagStreamController.stream.asBroadcastStream(
       onListen: (subscription) {
-        _ingredientStreamController.sink.add(state.currentIngredients);
+        _tagStreamController.sink.add(state.currentTags);
       },
-    ) as Stream<List<Ingredient>>;
+    ) as Stream<List<BookTag>>;
   }
 
   @override
-  CurrentRecipeData build() {
-    return const CurrentRecipeData();
+  CurrentBookData build() {
+    return const CurrentBookData();
   }
 
   @override
-  Stream<List<Recipe>> watchAllRecipes() {
-    return _recipeStream;
+  Stream<List<Book>> watchAllBooks() {
+    return _bookStream;
   }
 
   @override
-  Stream<List<Ingredient>> watchAllIngredients() {
-    return _ingredientStream;
+  Stream<List<BookTag>> watchAllTags() {
+    return _tagStream;
   }
 
   @override
-  Future<List<Recipe>> findAllRecipes() {
-    return Future.value(state.currentRecipes);
+  Future<List<Book>> findAllBooks() {
+    return Future.value(state.currentBooks);
   }
 
   @override
-  Future<Recipe> findRecipeById(int id) {
+  Future<Book> findBookById(int id) {
     return Future.value(
-        state.currentRecipes.firstWhere((recipe) => recipe.id == id));
+        state.currentBooks.firstWhere((book) => book.id == id));
   }
 
   @override
-  Future<List<Ingredient>> findAllIngredients() {
-    return Future.value(state.currentIngredients);
+  Future<List<BookTag>> findAllTags() {
+    return Future.value(state.currentTags);
   }
 
   @override
-  Future<List<Ingredient>> findRecipeIngredients(int recipeId) {
-    final recipe =
-        state.currentRecipes.firstWhere((recipe) => recipe.id == recipeId);
-    final recipeIngredients = state.currentIngredients
-        .where((ingredient) => ingredient.recipeId == recipe.id)
+  Future<List<BookTag>> findBookTags(int bookId) {
+    final book =
+        state.currentBooks.firstWhere((book) => book.id == bookId);
+    final bookTags = state.currentTags
+        .where((tag) => tag.bookId == book.id)
         .toList();
-    return Future.value(recipeIngredients);
+    return Future.value(bookTags);
   }
 
   @override
-  Future<int> insertRecipe(Recipe recipe) {
-    final alreadySaved = state.currentRecipes.any((currentRecipe) {
+  Future<int> insertBook(Book book) {
+    final alreadySaved = state.currentBooks.any((currentBook) {
       final sameSourceId =
-          recipe.sourceId != null && currentRecipe.sourceId == recipe.sourceId;
-      final sameLocalId = recipe.id != null && currentRecipe.id == recipe.id;
+          book.sourceId != null && currentBook.sourceId == book.sourceId;
+      final sameLocalId = book.id != null && currentBook.id == book.id;
 
       return sameSourceId || sameLocalId;
     });
@@ -81,64 +81,64 @@ class MemoryRepository extends Notifier<CurrentRecipeData>
     if (alreadySaved) {
       return Future.value(0);
     }
-    state = state.copyWith(currentRecipes: [...state.currentRecipes, recipe]);
-    _recipeStreamController.sink.add(state.currentRecipes);
-    final ingredients = <Ingredient>[];
-    for (final ingredient in recipe.ingredients) {
-      ingredients.add(ingredient.copyWith(recipeId: recipe.id));
+    state = state.copyWith(currentBooks: [...state.currentBooks, book]);
+    _bookStreamController.sink.add(state.currentBooks);
+    final tags = <BookTag>[];
+    for (final tag in book.tags) {
+      tags.add(tag.copyWith(bookId: book.id));
     }
-    insertIngredients(ingredients);
+    insertTags(tags);
     return Future.value(0);
   }
 
   @override
-  Future<List<int>> insertIngredients(List<Ingredient> ingredients) {
-    if (ingredients.isNotEmpty) {
+  Future<List<int>> insertTags(List<BookTag> tags) {
+    if (tags.isNotEmpty) {
       state = state.copyWith(
-          currentIngredients: [...state.currentIngredients, ...ingredients]);
+          currentTags: [...state.currentTags, ...tags]);
 
-      _ingredientStreamController.sink.add(state.currentIngredients);
+      _tagStreamController.sink.add(state.currentTags);
     }
     return Future.value(<int>[]);
   }
 
   @override
-  Future<void> deleteRecipe(Recipe recipe) {
-    final updatedList = [...state.currentRecipes];
-    updatedList.remove(recipe);
-    state = state.copyWith(currentRecipes: updatedList);
-    _recipeStreamController.sink.add(state.currentRecipes);
-    if (recipe.id != null) {
-      deleteRecipeIngredients(recipe.id!);
+  Future<void> deleteBook(Book book) {
+    final updatedList = [...state.currentBooks];
+    updatedList.remove(book);
+    state = state.copyWith(currentBooks: updatedList);
+    _bookStreamController.sink.add(state.currentBooks);
+    if (book.id != null) {
+      deleteBookTags(book.id!);
     }
     return Future.value();
   }
 
   @override
-  Future<void> deleteIngredient(Ingredient ingredient) {
-    final updatedList = [...state.currentIngredients];
-    updatedList.remove(ingredient);
-    state = state.copyWith(currentIngredients: updatedList);
+  Future<void> deleteTag(BookTag tag) {
+    final updatedList = [...state.currentTags];
+    updatedList.remove(tag);
+    state = state.copyWith(currentTags: updatedList);
 
-    _ingredientStreamController.sink.add(state.currentIngredients);
+    _tagStreamController.sink.add(state.currentTags);
     return Future.value();
   }
 
   @override
-  Future<void> deleteIngredients(List<Ingredient> ingredients) {
-    final updatedList = [...state.currentIngredients];
-    updatedList.removeWhere((ingredient) => ingredients.contains(ingredient));
-    state = state.copyWith(currentIngredients: updatedList);
-    _ingredientStreamController.sink.add(state.currentIngredients);
+  Future<void> deleteTags(List<BookTag> tags) {
+    final updatedList = [...state.currentTags];
+    updatedList.removeWhere((tag) => tags.contains(tag));
+    state = state.copyWith(currentTags: updatedList);
+    _tagStreamController.sink.add(state.currentTags);
     return Future.value();
   }
 
   @override
-  Future<void> deleteRecipeIngredients(int recipeId) {
-    final updatedList = [...state.currentIngredients];
-    updatedList.removeWhere((ingredient) => ingredient.recipeId == recipeId);
-    state = state.copyWith(currentIngredients: updatedList);
-    _ingredientStreamController.sink.add(state.currentIngredients);
+  Future<void> deleteBookTags(int bookId) {
+    final updatedList = [...state.currentTags];
+    updatedList.removeWhere((tag) => tag.bookId == bookId);
+    state = state.copyWith(currentTags: updatedList);
+    _tagStreamController.sink.add(state.currentTags);
     return Future.value();
   }
 
@@ -149,7 +149,7 @@ class MemoryRepository extends Notifier<CurrentRecipeData>
 
   @override
   void close() {
-    _recipeStreamController.close();
-    _ingredientStreamController.close();
+    _bookStreamController.close();
+    _tagStreamController.close();
   }
 }

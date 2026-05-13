@@ -4,14 +4,14 @@ import '../components/components.dart';
 import '../models/models.dart';
 import '../constants.dart';
 
-class RestaurantSection extends StatelessWidget {
-  final List<Restaurant> restaurants;
+class BookstoreSection extends StatelessWidget {
+  final List<Bookstore> bookstores;
   final CartManager cartManager;
   final OrderManager orderManager;
 
-  const RestaurantSection(
+  const BookstoreSection(
       {super.key,
-      required this.restaurants,
+      required this.bookstores,
       required this.cartManager,
       required this.orderManager});
 
@@ -33,14 +33,14 @@ class RestaurantSection extends StatelessWidget {
             height: 230,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: restaurants.length,
+              itemCount: bookstores.length,
               itemBuilder: (context, index) {
                 return SizedBox(
                     width: 300,
-                    child: RestaurantLandscapeCard(
-                      restaurant: restaurants[index],
+                    child: BookstoreLandscapeCard(
+                      bookstore: bookstores[index],
                       onTap: () {
-                        context.go('/${YummyTab.home.value}/restaurant/${restaurants[index].id}');
+                        context.go('/${YummyTab.home.value}/bookstore/${bookstores[index].id}');
                       },
                     ));
               },

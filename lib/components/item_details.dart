@@ -4,7 +4,7 @@ import '../models/models.dart';
 import 'cart_control.dart';
 
 class ItemDetails extends StatefulWidget {
-  final Item item;
+  final Book item;
   final CartManager cartManager;
   final void Function() quantityUpdated;
 
@@ -126,7 +126,7 @@ class _ItemDetailsState extends State<ItemDetails> {
     );
   }
 
-  Widget _addToCartControl(Item item) {
+  Widget _addToCartControl(Book item) {
     return CartControl(
       addToCart: (number) {
         const uuid = Uuid();

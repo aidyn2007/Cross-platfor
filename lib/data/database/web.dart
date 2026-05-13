@@ -7,7 +7,7 @@ DatabaseConnection connect() {
     return DatabaseConnection.delayed(
       Future.sync(() async {
         final db = await WasmDatabase.open(
-          databaseName: 'recipes',
+          databaseName: 'books',
           sqlite3Uri: Uri.parse('/sqlite3.wasm'),
           // driftWorkerUri: Uri.parse('/shared_worker.dart.js'),
           driftWorkerUri: Uri.parse('/drift_worker.js'),

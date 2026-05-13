@@ -17,7 +17,7 @@ class _$SpoonacularService extends SpoonacularService {
   final definitionType = SpoonacularService;
 
   @override
-  Future<Response<Result<QueryResult>>> queryRecipes(
+  Future<Response<Result<QueryResult>>> queryBooks(
     String query,
     int offset,
     int number,
@@ -38,7 +38,7 @@ class _$SpoonacularService extends SpoonacularService {
   }
 
   @override
-  Future<Response<Result<Recipe>>> queryRecipe(String id) {
+  Future<Response<Result<Book>>> queryBook(String id) {
     final Uri $url =
         Uri.parse('recipes/${id}/information?includeNutrition=false');
     final Request $request = Request(
@@ -46,6 +46,6 @@ class _$SpoonacularService extends SpoonacularService {
       $url,
       client.baseUrl,
     );
-    return client.send<Result<Recipe>, Recipe>($request);
+    return client.send<Result<Book>, Book>($request);
   }
 }

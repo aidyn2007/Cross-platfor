@@ -52,28 +52,28 @@ class GoogleBooksConverter implements Converter {
                 offset: 0,
                 number: 0,
                 totalResults: 0,
-                recipes: [])) as BodyType,
+                books: [])) as BodyType,
           );
         }
 
         final googleResults = GoogleBooksResults.fromJson(mapData);
-        final recipes = googleResults.items
-                ?.map((book) => googleBookToRecipe(book))
+        final books = googleResults.items
+                ?.map((book) => googleBookToBook(book))
                 .toList() ??
             [];
 
         return response.copyWith<BodyType>(
           body: Success(QueryResult(
             offset: 0,
-            number: recipes.length,
+            number: books.length,
             totalResults: totalItems,
-            recipes: recipes,
+            books: books,
           )) as BodyType,
         );
       } else {
-        final book = GoogleBook.fromJson(mapData);
-        final recipe = googleBookToRecipe(book);
-        return response.copyWith<BodyType>(body: Success(recipe) as BodyType);
+        final googleBook = GoogleBook.fromJson(mapData);
+        final book = googleBookToBook(googleBook);
+        return response.copyWith<BodyType>(body: Success(book) as BodyType);
       }
     } catch (e) {
       return Response(response.base, null,

@@ -85,13 +85,13 @@ class _YummyState extends State<Yummy> {
           },
           routes: [
             GoRoute(
-                path: 'restaurant/:id',
+                path: 'bookstore/:id',
                 builder: (context, state) {
                   final id =
                       int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-                  final restaurant = restaurants[id];
-                  return RestaurantPage(
-                    restaurant: restaurant,
+                  final bookstore = bookstores[id];
+                  return BookstorePage(
+                    bookstore: bookstore,
                     cartManager: _cartManager,
                     ordersManager: _orderManager,
                   );

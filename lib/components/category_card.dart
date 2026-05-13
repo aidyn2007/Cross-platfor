@@ -3,7 +3,7 @@ import '../models/models.dart';
 import '../screens/book_details_page.dart';
 
 class CategoryCard extends StatefulWidget {
-  final FoodCategory category;
+  final BookCategory category;
 
   const CategoryCard({
     super.key,

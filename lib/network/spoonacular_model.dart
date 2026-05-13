@@ -109,39 +109,39 @@ class ExtendedIngredient {
   Map<String, dynamic> toJson() => _$ExtendedIngredientToJson(this);
 }
 
-List<Recipe> spoonacularResultsToRecipe(SpoonacularResults result) {
-  final recipes = <Recipe>[];
+List<Book> spoonacularResultsToBook(SpoonacularResults result) {
+  final books = <Book>[];
   for (final result in result.results) {
-    recipes.add(spoonacularToRecipe(result));
+    books.add(spoonacularToBook(result));
   }
-  return recipes;
+  return books;
 }
 
-Recipe spoonacularToRecipe(SpoonacularResult result) {
-  return Recipe(
+Book spoonacularToBook(SpoonacularResult result) {
+  return Book(
       id: result.id,
       image: result.image,
       label: result.title,
       bookmarked: false,
-      ingredients: const <Ingredient>[],
+      tags: const <BookTag>[],
       description: result.title);
 }
 
-Recipe spoonacularRecipeToRecipe(SpoonacularRecipe spoonacularRecipe) {
-  final ingredients = <Ingredient>[];
-  for (final ingredient in spoonacularRecipe.extendedIngredients) {
-    ingredients.add(Ingredient(
-        id: ingredient.id,
-        name: ingredient.name,
-        amount: ingredient.amount,
-        recipeId: spoonacularRecipe.id));
+Book spoonacularRecipeToBook(SpoonacularRecipe spoonacularBook) {
+  final tags = <BookTag>[];
+  for (final tag in spoonacularBook.extendedIngredients) {
+    tags.add(BookTag(
+        id: tag.id,
+        name: tag.name,
+        amount: tag.amount,
+        bookId: spoonacularBook.id));
   }
-  return Recipe(
-    id: spoonacularRecipe.id,
-    label: spoonacularRecipe.title,
-    image: spoonacularRecipe.image,
+  return Book(
+    id: spoonacularBook.id,
+    label: spoonacularBook.title,
+    image: spoonacularBook.image,
     bookmarked: false,
-    description: spoonacularRecipe.summary,
-    ingredients: ingredients,
+    description: spoonacularBook.summary,
+    tags: tags,
   );
 }

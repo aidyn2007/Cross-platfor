@@ -42,7 +42,7 @@ class _ExplorePageState extends State<ExplorePage> {
       future: mockService.getExploreData(),
       builder: (context, AsyncSnapshot<ExploreData> snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
-          final restaurants = snapshot.data?.restaurants ?? [];
+          final bookstores = snapshot.data?.bookstores ?? [];
           final categories = snapshot.data?.categories ?? [];
           final posts = snapshot.data?.friendPosts ?? [];
 
@@ -100,8 +100,8 @@ class _ExplorePageState extends State<ExplorePage> {
                 ),
               ),
               SliverToBoxAdapter(
-                child: RestaurantSection(
-                  restaurants: restaurants,
+                child: BookstoreSection(
+                  bookstores: bookstores,
                   cartManager: widget.cartManager,
                   orderManager: widget.orderManager,
                 ),

@@ -5,9 +5,9 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
-import '../../data/models/recipe.dart';
+import '../../data/models/book.dart';
 import '../../providers.dart';
-import '../recipes/recipe_details.dart';
+import '../recipes/book_view.dart';
 
 class Bookmarks extends ConsumerStatefulWidget {
   const Bookmarks({super.key});
@@ -17,14 +17,14 @@ class Bookmarks extends ConsumerStatefulWidget {
 }
 
 class _BookmarkState extends ConsumerState<Bookmarks> {
-  List<Recipe> recipes = [];
-  late Stream<List<Recipe>> recipeStream;
+  List<Book> books = [];
+  late Stream<List<Book>> bookStream;
 
   @override
   void initState() {
     super.initState();
     final repository = ref.read(repositoryProvider.notifier);
-    recipeStream = repository.watchAllRecipes();
+    bookStream = repository.watchAllBooks();
   }
 
   @override
@@ -33,18 +33,18 @@ class _BookmarkState extends ConsumerState<Bookmarks> {
   }
 
   Widget _buildBookmarks(BuildContext context) {
-    return StreamBuilder<List<Recipe>>(
-      stream: recipeStream,
-      builder: (context, AsyncSnapshot<List<Recipe>> snapshot) {
+    return StreamBuilder<List<Book>>(
+      stream: bookStream,
+      builder: (context, AsyncSnapshot<List<Book>> snapshot) {
         if (snapshot.connectionState == ConnectionState.active) {
-          recipes = snapshot.data ?? [];
+          books = snapshot.data ?? [];
         }
         return SliverLayoutBuilder(
           builder: (BuildContext context, SliverConstraints constraints) {
             return SliverList.builder(
-              itemCount: recipes.length,
+              itemCount: books.length,
               itemBuilder: (BuildContext context, int index) {
-                final recipe = recipes[index];
+                final book = books[index];
                 return SizedBox(
                   height: 100,
                   child: Slidable(
@@ -58,7 +58,7 @@ class _BookmarkState extends ConsumerState<Bookmarks> {
                           foregroundColor: Colors.black,
                           icon: Icons.delete,
                           onPressed: (context) {
-    	                    deleteRecipe(recipe);
+    	                    deleteBook(book);
                           },
                         ),
                       ],
@@ -73,7 +73,7 @@ class _BookmarkState extends ConsumerState<Bookmarks> {
                           foregroundColor: Colors.black,
                           icon: Icons.delete,
                           onPressed: (context) {
-                   	     deleteRecipe(recipe);
+                   	     deleteBook(book);
                           },
                         ),
                       ],
@@ -82,8 +82,8 @@ class _BookmarkState extends ConsumerState<Bookmarks> {
                       onTap: () {
                         Navigator.push(context, MaterialPageRoute(
                           builder: (context) {
-                            return RecipeDetails(
-                                recipe: recipe.copyWith(bookmarked: true));
+                            return BookView(
+                                book: book.copyWith(bookmarked: true));
                           },
                         ));
                       },
@@ -99,12 +99,12 @@ class _BookmarkState extends ConsumerState<Bookmarks> {
                             padding: const EdgeInsets.all(8.0),
                             child: ListTile(
                               leading: CachedNetworkImage(
-                                imageUrl: recipe.image ?? '',
+                                imageUrl: book.image ?? '',
                                 height: 120,
                                 width: 60,
                                 fit: BoxFit.cover,
                               ),
-                              title: Text(recipe.label ?? ''),
+                              title: Text(book.label ?? ''),
                             ),
                           ),
                         ),
@@ -120,7 +120,7 @@ class _BookmarkState extends ConsumerState<Bookmarks> {
     );
   }
 
-  void deleteRecipe(Recipe recipe) {
-    ref.read(repositoryProvider.notifier).deleteRecipe(recipe);
+  void deleteBook(Book book) {
+    ref.read(repositoryProvider.notifier).deleteBook(book);
   }
 }

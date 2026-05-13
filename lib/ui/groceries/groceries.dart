@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/models/ingredient.dart';
+import '../../data/models/book_tag.dart';
 import '../theme/colors.dart';
 import '../widgets/common.dart';
-import '../widgets/ingredient_card.dart';
+import '../widgets/tag_card.dart';
 import '../../providers.dart';
 
 class GroceryList extends ConsumerStatefulWidget {
@@ -20,9 +20,9 @@ class _GroceryListState extends ConsumerState<GroceryList> {
   bool showAll = true;
 
   bool searching = false;
-  List<Ingredient> searchIngredients = [];
+  List<BookTag> searchTags = [];
   final ScrollController _scrollController = ScrollController();
-  List<Ingredient> currentIngredients = [];
+  List<BookTag> currentTags = [];
   final searchFocusNode = FocusNode();
 
   @override
@@ -30,12 +30,12 @@ class _GroceryListState extends ConsumerState<GroceryList> {
     super.initState();
     searchTextController = TextEditingController(text: '');
     final repository = ref.read(repositoryProvider.notifier);
-    final ingredientStream = repository.watchAllIngredients();
-    ingredientStream.listen(
-      (ingredients) {
+    final tagStream = repository.watchAllTags();
+    tagStream.listen(
+      (tags) {
         if (mounted) {
           setState(() {
-            currentIngredients = ingredients;
+            currentTags = tags;
           });
         }
       },
@@ -56,7 +56,7 @@ class _GroceryListState extends ConsumerState<GroceryList> {
         children: [
           _buildHeader(),
           buildSearchRow(),
-          showAll ? buildIngredientList() : buildNeedHaveList(),
+          showAll ? buildTagList() : buildNeedHaveList(),
         ],
       ),
     );
@@ -87,31 +87,31 @@ class _GroceryListState extends ConsumerState<GroceryList> {
     final needListIndexes = <int, bool>{};
     final haveListIndexes = <int, bool>{};
 
-    for (var index = 0; index < currentIngredients.length; index++) {
+    for (var index = 0; index < currentTags.length; index++) {
       if (!checkBoxValues.containsKey(index)) {
         needListIndexes[index] = true;
       } else {
         haveListIndexes[index] = true;
       }
     }
-    final needList = <Ingredient>[];
-    final haveList = <Ingredient>[];
-    for (var index = 0; index < currentIngredients.length; index++) {
+    final needList = <BookTag>[];
+    final haveList = <BookTag>[];
+    for (var index = 0; index < currentTags.length; index++) {
       if (needListIndexes.containsKey(index)) {
-        needList.add(currentIngredients[index]);
+        needList.add(currentTags[index]);
       }
       if (haveListIndexes.containsKey(index)) {
-        haveList.add(currentIngredients[index]);
+        haveList.add(currentTags[index]);
       }
     }
     final columnList = <Widget>[];
     if (needList.isNotEmpty) {
       columnList.add(const Text('Need'));
-      columnList.add(ingredientList(needList, null, false));
+      columnList.add(tagList(needList, null, false));
     }
     if (haveList.isNotEmpty) {
       columnList.add(const Text('Have'));
-      columnList.add(ingredientList(haveList, null, false));
+      columnList.add(tagList(haveList, null, false));
     }
     return Expanded(
       child: Column(
@@ -120,32 +120,32 @@ class _GroceryListState extends ConsumerState<GroceryList> {
     );
   }
 
-  Widget buildIngredientList() {
+  Widget buildTagList() {
       if (searching) {
         startSearch(searchTextController.text);
-        return ingredientList(searchIngredients, checkBoxValues, true);
+        return tagList(searchTags, checkBoxValues, true);
       } else {
-        return ingredientList(currentIngredients, checkBoxValues, true);
+        return tagList(currentTags, checkBoxValues, true);
       }
   }
 
-  Widget ingredientList(List<Ingredient> ingredients,
+  Widget tagList(List<BookTag> tags,
       Map<int, bool>? checkBoxValues, bool showCheckbox) {
     return Expanded(
       child: ListView.builder(
         controller: _scrollController,
-        itemCount: ingredients.length,
+        itemCount: tags.length,
         itemBuilder: (BuildContext context, int index) {
           final checked = checkBoxValues?[index] ?? false;
-          return createIngredientCard(
-              ingredients[index], checkBoxValues, checked, index, showCheckbox);
+          return createTagCard(
+              tags[index], checkBoxValues, checked, index, showCheckbox);
         },
       ),
     );
   }
 
-  Widget createIngredientCard(
-      Ingredient ingredient,
+  Widget createTagCard(
+      BookTag tag,
       Map<int, bool>? checkBoxValues,
       bool checked,
       int index,
@@ -153,8 +153,8 @@ class _GroceryListState extends ConsumerState<GroceryList> {
     final even = index % 2 == 0;
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: IngredientCard(
-          name: ingredient.name ?? '',
+      child: TagCard(
+          name: tag.name ?? '',
           initiallyChecked: checked,
           evenRow: even,
           showCheckbox: showCheckbox,
@@ -235,7 +235,7 @@ class _GroceryListState extends ConsumerState<GroceryList> {
 
   void startSearch(String searchString) {
     searching = searchString.isNotEmpty;
-    searchIngredients = currentIngredients
+    searchTags = currentTags
         .where((element) => element.name?.toLowerCase().contains(searchString.toLowerCase()) ?? false)
         .toList();
     setState(() {});
