@@ -57,7 +57,7 @@ flutter:
   assets:
     - assets/
     - assets/categories/
-    - assets/restaurants/
+    - assets/bookstores/
     - assets/profile_pics/
     - assets/food/
     - assets/images/
