@@ -38,6 +38,14 @@ dependencies:
   flutter_html: ^3.0.0
   flutter_riverpod: ^2.4.4
   path_provider: ^2.1.5
+  lumberdash: ^3.0.0
+  colorize_lumberdash: ^3.0.0
+  synchronized: ^3.1.0
+  sqlbrite: ^2.6.0
+  sqlite3_flutter_libs: ^0.5.18
+  web_ffi: ^0.7.2
+  sqlite3: ^2.1.0
+  drift: ^2.13.1
 
 dev_dependencies:
   flutter_test:
@@ -47,6 +55,9 @@ dev_dependencies:
   json_serializable: ^6.8.0
   chopper_generator: ^8.0.0
   freezed: ^2.4.5
+  drift_dev: ^2.13.2
+  mockito: ^5.4.2
+  golden_toolkit: ^0.15.0
 
 dependency_overrides:
   win32: ^5.5.4
