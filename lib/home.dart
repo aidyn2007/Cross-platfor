@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'constants.dart';
 import '../components/components.dart';
 import '../models/models.dart';
 import '../screens/screens.dart';
+import 'providers.dart';
 import 'ui/library/library_page.dart';
-import 'ui/recipes/recipe_list.dart';
+import 'ui/recipes/book_list.dart';
 
-class Home extends StatefulWidget {
+class Home extends ConsumerStatefulWidget {
   const Home({
     super.key,
-    required this.auth,
     required this.cartManager,
     required this.ordersManager,
     required this.changeTheme,
@@ -20,7 +21,6 @@ class Home extends StatefulWidget {
     this.initialBookSearchQuery,
   });
 
-  final YummyAuth auth;
   final int tab;
   final CartManager cartManager;
   final OrderManager ordersManager;
@@ -30,10 +30,10 @@ class Home extends StatefulWidget {
   final String? initialBookSearchQuery;
 
   @override
-  State<Home> createState() => _HomeState();
+  ConsumerState<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> {
+class _HomeState extends ConsumerState<Home> {
   List<NavigationDestination> appBarDestinations = const [
     NavigationDestination(
       icon: Icon(Icons.home_outlined),
@@ -78,17 +78,17 @@ class _HomeState extends State<Home> {
           context.go('/1?search=${Uri.encodeQueryComponent(query)}');
         },
       ),
-      RecipeList(initialSearchQuery: widget.initialBookSearchQuery),
+      BookList(initialSearchQuery: widget.initialBookSearchQuery),
       const LibraryPage(),
       MyOrdersPage(orderManager: widget.ordersManager),
       AccountPage(
-          onLogOut: (logout) async {
-            widget.auth.signOut().then((value) => context.go('/login'));
+          onLogOut: (logout) {
+            ref.read(userDaoProvider).logout();
           },
           user: User(
-              firstName: 'Stef',
-              lastName: 'P',
-              role: 'Flutteristas',
+              firstName: ref.read(userDaoProvider).email() ?? 'Reader',
+              lastName: '',
+              role: 'Bookstore member',
               profileImageUrl: 'assets/profile_pics/person_stef.jpeg',
               points: 100,
               darkMode: true)),

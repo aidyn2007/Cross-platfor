@@ -17,18 +17,18 @@ class _$GoogleBooksService extends GoogleBooksService {
   final definitionType = GoogleBooksService;
 
   @override
-  Future<Response<Result<Recipe>>> queryRecipe(String id) {
+  Future<Response<Result<Book>>> queryBook(String id) {
     final Uri $url = Uri.parse('volumes/${id}');
     final Request $request = Request(
       'GET',
       $url,
       client.baseUrl,
     );
-    return client.send<Result<Recipe>, Recipe>($request);
+    return client.send<Result<Book>, Book>($request);
   }
 
   @override
-  Future<Response<Result<QueryResult>>> queryRecipes(
+  Future<Response<Result<QueryResult>>> queryBooks(
     String query,
     int offset,
     int number,

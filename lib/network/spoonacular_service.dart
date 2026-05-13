@@ -1,5 +1,7 @@
+import 'dart:async';
+
 import 'package:chopper/chopper.dart';
-import '../data/models/recipe.dart';
+import '../data/models/book.dart';
 import 'model_response.dart';
 import 'query_result.dart';
 import 'service_interface.dart';
@@ -17,13 +19,13 @@ abstract class SpoonacularService extends ChopperService
     implements ServiceInterface {
   @override
   @Get(path: 'recipes/{id}/information?includeNutrition=false')
-  Future<RecipeDetailsResponse> queryRecipe(
+  Future<BookDetailsResponse> queryBook(
     @Path('id') String id,
   );
 
   @override
   @Get(path: 'recipes/complexSearch')
-  Future<RecipeResponse> queryRecipes(
+  Future<BookResponse> queryBooks(
     @Query('query') String query,
     @Query('offset') int offset,
     @Query('number') int number,
@@ -32,7 +34,7 @@ abstract class SpoonacularService extends ChopperService
   static SpoonacularService create() {
     final client = ChopperClient(
       baseUrl: Uri.parse(apiUrl),
-      interceptors: [_addQuery, HttpLoggingInterceptor()],
+      interceptors: [_AddQueryInterceptor(), HttpLoggingInterceptor()],
       converter: SpoonacularConverter(),
       errorConverter: const JsonConverter(),
       services: [
@@ -43,9 +45,14 @@ abstract class SpoonacularService extends ChopperService
   }
 }
 
-Request _addQuery(Request req) {
-  final params = Map<String, dynamic>.from(req.parameters);
-  params['apiKey'] = apiKey;
-
-  return req.copyWith(parameters: params);
+class _AddQueryInterceptor implements Interceptor {
+  @override
+  FutureOr<Response<BodyType>> intercept<BodyType>(
+      Chain<BodyType> chain) async {
+    final request = chain.request;
+    final params = Map<String, dynamic>.from(request.parameters);
+    params['apiKey'] = apiKey;
+    final updatedRequest = request.copyWith(parameters: params);
+    return chain.proceed(updatedRequest);
+  }
 }

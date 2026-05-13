@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import '../theme/colors.dart';
 
-class IngredientCard extends StatelessWidget {
+class TagCard extends StatelessWidget {
   final String name;
   final bool initiallyChecked;
   final bool evenRow;
   final bool showCheckbox;
   final ValueChanged<bool> onChecked;
 
-  const IngredientCard({
+  const TagCard({
     super.key,
     required this.name,
     required this.initiallyChecked,

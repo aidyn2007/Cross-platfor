@@ -3,11 +3,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../data/models/recipe.dart';
+import '../data/models/book.dart';
 import 'theme/colors.dart';
 import 'widgets/common.dart';
 
-Widget recipeCard(Recipe recipe) {
+Widget bookCardWidget(Book book) {
   return Card(
     color: Colors.white,
     elevation: 4.0,
@@ -29,7 +29,7 @@ Widget recipeCard(Recipe recipe) {
               children: [
                 Expanded(
                   child: AutoSizeText(
-                    recipe.label ?? '',
+                    book.label ?? '',
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                     style: const TextStyle(
@@ -49,9 +49,9 @@ Widget recipeCard(Recipe recipe) {
               bottomRight: Radius.circular(6.0),
             ),
             child: Hero(
-              tag: 'recipe-${recipe.id}',
+              tag: 'book-${book.id}',
                 child: CachedNetworkImage(
-                  imageUrl: recipe.image ?? '',
+                  imageUrl: book.image ?? '',
                   height: 160,
                   fit: BoxFit.cover,
                   errorWidget: (context, url, error) => Container(

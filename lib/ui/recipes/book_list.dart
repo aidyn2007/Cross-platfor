@@ -7,27 +7,27 @@ import 'package:yummy/network/model_response.dart';
 import 'package:yummy/network/query_result.dart';
 import 'package:yummy/providers.dart';
 import 'package:yummy/ui/bookmarks/bookmarks.dart';
-import 'package:yummy/ui/recipe_card.dart';
-import 'package:yummy/ui/recipes/recipe_details.dart';
+import 'package:yummy/ui/book_card.dart';
+import 'package:yummy/ui/recipes/book_view.dart';
 
 enum ListType { all, bookmarks }
 
-class RecipeList extends ConsumerStatefulWidget {
+class BookList extends ConsumerStatefulWidget {
   final String? initialSearchQuery;
 
-  const RecipeList({
+  const BookList({
     super.key,
     this.initialSearchQuery,
   });
 
   @override
-  ConsumerState createState() => _RecipeListState();
+  ConsumerState createState() => _BookListState();
 }
 
-class _RecipeListState extends ConsumerState<RecipeList> {
+class _BookListState extends ConsumerState<BookList> {
   late TextEditingController searchTextController;
   final ScrollController _scrollController = ScrollController();
-  List<Recipe> currentSearchList = [];
+  List<Book> currentSearchList = [];
   int currentCount = 0;
   int currentStartPosition = 0;
   int currentEndPosition = 20;
@@ -36,7 +36,7 @@ class _RecipeListState extends ConsumerState<RecipeList> {
   bool loading = false;
   bool inErrorState = false;
   ListType currentType = ListType.all;
-  Future<RecipeResponse>? currentResponse;
+  Future<BookResponse>? currentResponse;
   bool newDataRequired = true;
 
   @override
@@ -68,7 +68,7 @@ class _RecipeListState extends ConsumerState<RecipeList> {
   }
 
   @override
-  void didUpdateWidget(covariant RecipeList oldWidget) {
+  void didUpdateWidget(covariant BookList oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     final nextQuery = widget.initialSearchQuery?.trim() ?? '';
@@ -104,16 +104,16 @@ class _RecipeListState extends ConsumerState<RecipeList> {
   @override
   Widget build(BuildContext context) {
     return switch (currentType) {
-      ListType.all => buildRecipeList(),
+      ListType.all => buildBookList(),
       ListType.bookmarks => buildBookmarkList()
     };
   }
 
-  Widget buildRecipeList() {
+  Widget buildBookList() {
     return buildScrollList([
       _buildTypePicker(),
       _buildSearchCard(),
-    ], _buildRecipeLoader(context));
+    ], _buildBookLoader(context));
   }
 
   Widget buildBookmarkList() {
@@ -173,12 +173,12 @@ class _RecipeListState extends ConsumerState<RecipeList> {
     );
   }
 
-  Widget _buildRecipeLoader(BuildContext context) {
+  Widget _buildBookLoader(BuildContext context) {
     if (searchTextController.text.length < 3) {
       return const SliverFillRemaining(
           child: Center(child: Text('Type at least 3 characters to search')));
     }
-    return FutureBuilder<RecipeResponse>(
+    return FutureBuilder<BookResponse>(
       future: fetchData(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
@@ -219,27 +219,27 @@ class _RecipeListState extends ConsumerState<RecipeList> {
           currentCount = query.totalResults;
           hasMore = query.totalResults > (query.offset + query.number);
           if (newDataRequired) {
-            currentSearchList.addAll(query.recipes);
+            currentSearchList.addAll(query.books);
             newDataRequired = false;
           }
           return currentSearchList.isEmpty
               ? const SliverFillRemaining(
                   child: Center(child: Text('No Results')))
-              : _buildRecipeList(context, currentSearchList);
+              : _buildBookList(context, currentSearchList);
         } else {
           return currentCount == 0
               ? const SliverFillRemaining(
                   child: Center(child: CircularProgressIndicator()))
-              : _buildRecipeList(context, currentSearchList);
+              : _buildBookList(context, currentSearchList);
         }
       },
     );
   }
 
-  Future<RecipeResponse> fetchData() async {
+  Future<BookResponse> fetchData() async {
     if (!newDataRequired && currentResponse != null) return currentResponse!;
-    final recipeService = ref.watch(serviceProvider);
-    currentResponse = recipeService.queryRecipes(
+    final bookService = ref.watch(serviceProvider);
+    currentResponse = bookService.queryBooks(
         searchTextController.text.trim(), currentStartPosition, pageCount);
     return currentResponse!;
   }
@@ -284,23 +284,23 @@ class _RecipeListState extends ConsumerState<RecipeList> {
     return message.replaceFirst('Exception: ', '');
   }
 
-  Widget _buildRecipeList(
-      BuildContext recipeListContext, List<Recipe> recipes) {
+  Widget _buildBookList(
+      BuildContext bookListContext, List<Book> books) {
     return SliverLayoutBuilder(
       builder: (BuildContext context, constraints) {
         final numColumns = max(1, constraints.crossAxisExtent ~/ 264);
         return SliverGrid(
           delegate: SliverChildBuilderDelegate(
-            childCount: recipes.length,
+            childCount: books.length,
             (BuildContext context, int index) {
               return GestureDetector(
                 onTap: () => Navigator.push(
-                    recipeListContext,
+                    bookListContext,
                     MaterialPageRoute(
                       builder: (context) =>
-                          RecipeDetails(recipe: recipes[index]),
+                          BookView(book: books[index]),
                     )),
-                child: recipeCard(recipes[index]),
+                child: bookCardWidget(books[index]),
               );
             },
           ),

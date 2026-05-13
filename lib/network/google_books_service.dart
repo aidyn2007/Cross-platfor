@@ -1,5 +1,7 @@
+import 'dart:async';
+
 import 'package:chopper/chopper.dart';
-import 'package:yummy/data/models/recipe.dart';
+import 'package:yummy/data/models/book.dart';
 import 'package:yummy/network/model_response.dart';
 import 'package:yummy/network/query_result.dart';
 import 'package:yummy/network/service_interface.dart';
@@ -10,15 +12,21 @@ part 'google_books_service.chopper.dart';
 const String googleBooksUrl = 'https://www.googleapis.com/books/v1/';
 const String googleBooksApiKey = String.fromEnvironment('GOOGLE_BOOKS_API_KEY');
 
-Request _addGoogleBooksApiKey(Request request) {
-  if (googleBooksApiKey.isEmpty) return request;
+class _AddGoogleBooksApiKeyInterceptor implements Interceptor {
+  @override
+  FutureOr<Response<BodyType>> intercept<BodyType>(
+      Chain<BodyType> chain) async {
+    final request = chain.request;
+    if (googleBooksApiKey.isEmpty) return chain.proceed(request);
 
-  return request.copyWith(
-    parameters: {
-      ...request.parameters,
-      'key': googleBooksApiKey,
-    },
-  );
+    final updatedRequest = request.copyWith(
+      parameters: {
+        ...request.parameters,
+        'key': googleBooksApiKey,
+      },
+    );
+    return chain.proceed(updatedRequest);
+  }
 }
 
 @ChopperApi()
@@ -26,13 +34,13 @@ abstract class GoogleBooksService extends ChopperService
     implements ServiceInterface {
   @override
   @Get(path: 'volumes/{id}')
-  Future<RecipeDetailsResponse> queryRecipe(
+  Future<BookDetailsResponse> queryBook(
     @Path('id') String id,
   );
 
   @override
   @Get(path: 'volumes')
-  Future<RecipeResponse> queryRecipes(
+  Future<BookResponse> queryBooks(
     @Query('q') String query,
     @Query('startIndex') int offset,
     @Query('maxResults') int number,
@@ -43,7 +51,7 @@ abstract class GoogleBooksService extends ChopperService
       baseUrl: Uri.parse(googleBooksUrl),
       interceptors: [
         HttpLoggingInterceptor(),
-        _addGoogleBooksApiKey,
+        _AddGoogleBooksApiKeyInterceptor(),
       ],
       converter: GoogleBooksConverter(),
       errorConverter: const JsonConverter(),

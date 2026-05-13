@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:yummy/data/models/current_recipe_data.dart';
+import 'package:yummy/data/models/current_book_data.dart';
 import 'package:yummy/data/repositories/memory_repository.dart';
 import 'package:yummy/network/service_interface.dart';
 import 'package:yummy/ui/main_screen_state.dart';
@@ -19,7 +19,7 @@ final bottomNavigationProvider =
 });
 
 final repositoryProvider =
-    NotifierProvider<MemoryRepository, CurrentRecipeData>(() {
+    NotifierProvider<MemoryRepository, CurrentBookData>(() {
   return MemoryRepository();
 });
 

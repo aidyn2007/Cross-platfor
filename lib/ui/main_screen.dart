@@ -4,7 +4,7 @@ import '../providers.dart';
 import '../utils.dart';
 import 'groceries/groceries.dart';
 import 'theme/colors.dart';
-import 'recipes/recipe_list.dart';
+import 'recipes/book_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_adaptive_scaffold/flutter_adaptive_scaffold.dart';
 
@@ -22,7 +22,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   @override
   void initState() {
     super.initState();
-    pageList.add(const RecipeList());
+    pageList.add(const BookList());
     pageList.add(const GroceryList());
     Future.microtask(() async {
       getCurrentIndex();
@@ -128,10 +128,10 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                   ? selectedColor
                   : Colors.black,
               BlendMode.srcIn),
-          semanticsLabel: 'Recipes',
+          semanticsLabel: 'Books',
         ),
         label: const Text(
-          'Recipes',
+          'Books',
           style: TextStyle(fontSize: 10),
         ),
       ),
@@ -187,9 +187,9 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                     ? selectedColor
                     : unSelectedItemColor,
                 BlendMode.srcIn),
-            semanticsLabel: 'Recipes',
+            semanticsLabel: 'Books',
           ),
-          label: 'Recipes',
+          label: 'Books',
         ),
         BottomNavigationBarItem(
           icon: SvgPicture.asset(

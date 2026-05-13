@@ -1,10 +1,10 @@
 # Architecture — Functions & Widgets
 
-This document is a structural map of the **Yummy** Flutter application. It is
-derived from the actual source under `lib/` and is intended to be read as the
-counterpart of the ER diagram from the previous assignment: every entity in the
-ER diagram appears here as a Dart class, and the widget tree shows where each
-entity is rendered.
+This document is a structural map of the **Yummy** Flutter application (an
+online bookstore). It is derived from the actual source under `lib/` and is
+intended to be read as the counterpart of the ER diagram from the previous
+assignment: every entity in the ER diagram appears here as a Dart class, and
+the widget tree shows where each entity is rendered.
 
 All diagrams below are written in [Mermaid](https://mermaid.live) — GitHub
 renders them automatically in the file preview, and you can also paste any of
@@ -18,24 +18,22 @@ them into <https://mermaid.live> to export PNG/SVG.
 flowchart LR
     subgraph Domain["Domain models (ER entities)"]
         direction TB
-        Restaurant
-        Item
-        FoodCategory
+        Bookstore
+        Book
+        BookCategory
         Post
         User
         CartItem
         Order
         Message
-        Recipe
-        Ingredient
+        CatalogBook["Book (catalog)"]
+        BookTag
     end
 
     subgraph State["State / managers / DAOs"]
         direction TB
         CartManager
         OrderManager
-        YummyAuth
-        AppCache
         UserDao
         MessageDao
         MemoryRepository
@@ -55,15 +53,15 @@ flowchart LR
         LoginPage
         Home
         ExplorePage
-        RecipeList
+        BookList
         LibraryPage
         MyOrdersPage
         AccountPage
         ChatPage
-        RestaurantPage
+        BookstorePage
         CheckoutPage
         BookDetailsPage
-        RecipeDetails
+        BookView
         Bookmarks
         GroceryList
     end
@@ -85,7 +83,7 @@ ER relationships (1 — N, N — M).
 classDiagram
     direction LR
 
-    class Restaurant {
+    class Bookstore {
         +String id
         +String name
         +String address
@@ -93,20 +91,20 @@ classDiagram
         +String imageUrl
         +double distance
         +double rating
-        +List~Item~ items
+        +List~Book~ items
         +getRatingAndDistance() String
     }
 
-    class Item {
+    class Book {
         +String name
         +String description
         +double price
         +String imageUrl
     }
 
-    class FoodCategory {
+    class BookCategory {
         +String name
-        +int numberOfRestaurants
+        +int numberOfBookstores
         +String imageUrl
     }
 
@@ -157,49 +155,56 @@ classDiagram
         +fromSnapshot(DocumentSnapshot) Message
     }
 
-    class Recipe {
+    class CatalogBook["Book (catalog)"] {
         +int id
         +String sourceId
         +String label
         +String image
         +String description
         +bool bookmarked
-        +List~Ingredient~ ingredients
-        +copyWith(...) Recipe
+        +List~BookTag~ tags
+        +copyWith(...) Book
     }
 
-    class Ingredient {
+    class BookTag {
         +int id
-        +int recipeId
+        +int bookId
         +String name
         +double amount
-        +copyWith(...) Ingredient
+        +copyWith(...) BookTag
     }
 
-    Restaurant "1" *-- "many" Item : owns
+    Bookstore "1" *-- "many" Book : sells
     Order "1" *-- "many" CartItem : line items
-    Recipe "1" *-- "many" Ingredient : composed of
-    Ingredient "many" --> "1" Recipe : recipeId
+    CatalogBook "1" *-- "many" BookTag : tagged with
+    BookTag "many" --> "1" CatalogBook : bookId
     User "1" --> "many" Post : authors
     User "1" --> "many" Message : sends
     User "1" --> "many" Order : places
-    Restaurant "many" --> "1" FoodCategory : classified by
+    Bookstore "many" --> "1" BookCategory : classified by
 ```
 
 > **Mapping to the ER diagram**
 >
-> | ER entity        | Dart class                |
-> | ---------------- | ------------------------- |
-> | Restaurant       | `Restaurant`              |
-> | Menu Item / Dish | `Item`                    |
-> | Category         | `FoodCategory`            |
-> | User             | `User` + `UserDao` record |
-> | Post / Feed item | `Post`                    |
-> | Cart line        | `CartItem`                |
-> | Order            | `Order`                   |
-> | Chat message     | `Message`                 |
-> | Recipe           | `Recipe`                  |
-> | Ingredient       | `Ingredient`              |
+> | ER entity         | Dart class                              |
+> | ----------------- | --------------------------------------- |
+> | Bookstore         | `Bookstore` (`lib/models/bookstore.dart`)|
+> | Catalog item      | `Book` (`lib/models/bookstore.dart`)    |
+> | Genre / Category  | `BookCategory`                          |
+> | User              | `User` + `UserDao` record               |
+> | Post / Feed item  | `Post`                                  |
+> | Cart line         | `CartItem`                              |
+> | Order             | `Order`                                 |
+> | Chat message      | `Message`                               |
+> | Book (library)    | `Book` (`lib/data/models/book.dart`)    |
+> | Tag               | `BookTag`                               |
+
+Note: there are two `Book` classes in the codebase that live in different
+namespaces — `lib/models/bookstore.dart` defines the lightweight catalog item
+shown inside a bookstore, while `lib/data/models/book.dart` defines the richer
+entity returned by the Google Books / Spoonacular search APIs and persisted in
+the in-memory library. They are intentionally separated because they have
+different fields (`price`/`imageUrl` vs `sourceId`/`bookmarked`/`tags`).
 
 ---
 
@@ -211,20 +216,6 @@ sources (Firebase, in-memory mock, Chopper REST services, SharedPreferences).
 ```mermaid
 classDiagram
     direction TB
-
-    class YummyAuth {
-        -bool _loggedIn
-        -AppCache _appCache
-        +loggedIn Future~bool~
-        +signIn(username, password) Future~bool~
-        +signOut() Future~void~
-    }
-
-    class AppCache {
-        +invalidate() Future~void~
-        +cacheUser() Future~void~
-        +isUserLoggedIn() Future~bool~
-    }
 
     class UserDao {
         -FirebaseAuth auth
@@ -264,40 +255,39 @@ classDiagram
     }
 
     class MemoryRepository {
-        +findAllRecipes() Future~List~Recipe~~
-        +watchAllRecipes() Stream~List~Recipe~~
-        +watchAllIngredients() Stream~List~Ingredient~~
-        +insertRecipe(recipe) Future~int~
-        +insertIngredients(ingredients) Future~List~int~~
-        +deleteRecipe(recipe) Future~void~
-        +findRecipeIngredients(recipeId) Future~List~Ingredient~~
+        +findAllBooks() Future~List~Book~~
+        +watchAllBooks() Stream~List~Book~~
+        +watchAllTags() Stream~List~BookTag~~
+        +insertBook(book) Future~int~
+        +insertTags(tags) Future~List~int~~
+        +deleteBook(book) Future~void~
+        +findBookTags(bookId) Future~List~BookTag~~
         +init() Future
         +close() void
     }
 
     class MockYummyService {
         +getExploreData() Future~ExploreData~
-        -_getRestaurants() Future~List~Restaurant~~
-        -_getCategories() Future~List~FoodCategory~~
+        -_getBookstores() Future~List~Bookstore~~
+        -_getCategories() Future~List~BookCategory~~
         -_getFriendFeed() Future~List~Post~~
     }
 
     class ExploreData {
-        +List~Restaurant~ restaurants
-        +List~FoodCategory~ categories
+        +List~Bookstore~ bookstores
+        +List~BookCategory~ categories
         +List~Post~ friendPosts
     }
 
-    YummyAuth o-- AppCache
     MessageDao o-- UserDao
     MessageDao ..> Message : produces
-    MemoryRepository ..> Recipe : CRUD
-    MemoryRepository ..> Ingredient : CRUD
+    MemoryRepository ..> Book : CRUD
+    MemoryRepository ..> BookTag : CRUD
     CartManager *-- CartItem
     OrderManager *-- Order
     MockYummyService ..> ExploreData : returns
-    ExploreData o-- Restaurant
-    ExploreData o-- FoodCategory
+    ExploreData o-- Bookstore
+    ExploreData o-- BookCategory
     ExploreData o-- Post
 ```
 
@@ -311,27 +301,27 @@ classDiagram
 
     class ServiceInterface {
         <<abstract>>
-        +queryRecipes(query, offset, number) Future~RecipeResponse~
-        +queryRecipe(id) Future~RecipeDetailsResponse~
+        +queryBooks(query, offset, number) Future~BookResponse~
+        +queryBook(id) Future~BookDetailsResponse~
     }
 
     class GoogleBooksService {
         <<ChopperApi>>
-        +queryRecipes(...)
-        +queryRecipe(...)
+        +queryBooks(...)
+        +queryBook(...)
         +create() GoogleBooksService
     }
 
     class SpoonacularService {
         <<ChopperApi>>
-        +queryRecipes(...)
-        +queryRecipe(...)
+        +queryBooks(...)
+        +queryBook(...)
         +create() SpoonacularService
     }
 
     GoogleBooksService ..|> ServiceInterface
     SpoonacularService ..|> ServiceInterface
-    ServiceInterface ..> Recipe : returns
+    ServiceInterface ..> Book : returns
 ```
 
 ---
@@ -350,12 +340,12 @@ flowchart TD
 
     GoRouter -. /login .-> LoginPage
     GoRouter -. /:tab .-> Home
-    GoRouter -. /:tab/restaurant/:id .-> RestaurantPage
+    GoRouter -. /:tab/bookstore/:id .-> BookstorePage
 
     LoginPage --> LoginForm
 
     Home -->|tab 0| ExplorePage
-    Home -->|tab 1| RecipeList
+    Home -->|tab 1| BookList
     Home -->|tab 2| LibraryPage
     Home -->|tab 3| MyOrdersPage
     Home -->|tab 4| AccountPage
@@ -363,25 +353,24 @@ flowchart TD
     Home --> ThemeButton
     Home --> ColorButton
 
-    ExplorePage --> RestaurantSection
+    ExplorePage --> BookstoreSection
     ExplorePage --> PostSection
     ExplorePage --> CategorySection
-    RestaurantSection --> RestaurantLandscapeCard
-    RestaurantSection --> RestaurantItem
+    BookstoreSection --> BookstoreLandscapeCard
+    BookstoreSection --> BookstoreItem
     PostSection --> PostCard
     CategorySection --> CategoryCard
 
-    RestaurantPage --> ItemDetails
-    RestaurantPage --> CartControl
-    RestaurantPage -. push .-> CheckoutPage
+    BookstorePage --> ItemDetails
+    BookstorePage --> CartControl
+    BookstorePage -. push .-> CheckoutPage
 
     CategoryCard -. push .-> BookDetailsPage
 
-    ChatPage --> Login
     ChatPage --> MessageList
     MessageList --> MessageWidget
 
-    RecipeList -. push .-> RecipeDetails
+    BookList -. push .-> BookView
     LibraryPage --> Bookmarks
     LibraryPage --> GroceryList
 
@@ -390,29 +379,35 @@ flowchart TD
 
 ---
 
-## 6. End-to-end data flow for the "Chat" feature
+## 6. End-to-end data flow for authentication and chat
 
-A concrete example of how the layers interact for a single user action
-(sending a chat message):
+A concrete example of how the layers interact across two user actions
+(logging in on startup, then sending a chat message):
 
 ```mermaid
 sequenceDiagram
     actor User
+    participant App as Yummy (GoRouter)
+    participant LoginPage
+    participant UserDao
+    participant FirebaseAuth
     participant ChatPage
     participant MessageList
     participant MessageDao
-    participant UserDao
     participant Firestore as Cloud Firestore
 
+    User->>App: launch app
+    App->>UserDao: isLoggedIn()
+    UserDao-->>App: false
+    App->>LoginPage: redirect to /login
+    User->>LoginPage: enter email and password, tap Login / Sign Up
+    LoginPage->>UserDao: login() or signup()
+    UserDao->>FirebaseAuth: signInWithEmailAndPassword / createUserWithEmailAndPassword
+    FirebaseAuth-->>UserDao: User
+    UserDao-->>App: notifyListeners()
+    App->>App: redirect to /0 (Explore)
+
     User->>ChatPage: open Chat tab
-    ChatPage->>UserDao: isLoggedIn()
-    alt not logged in
-        ChatPage-->>User: show Login form
-        User->>UserDao: signup(email, password)
-        UserDao->>Firestore: createUserWithEmailAndPassword
-        Firestore-->>UserDao: User
-        UserDao-->>ChatPage: notifyListeners()
-    end
     ChatPage->>MessageList: render
     MessageList->>MessageDao: getMessageStream()
     MessageDao->>Firestore: collection('messages').snapshots()

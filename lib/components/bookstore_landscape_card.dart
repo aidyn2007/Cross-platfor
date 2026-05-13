@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 
-class RestaurantLandscapeCard extends StatelessWidget {
-  final Restaurant restaurant;
+class BookstoreLandscapeCard extends StatelessWidget {
+  final Bookstore bookstore;
   final Function() onTap;
 
-  const RestaurantLandscapeCard({
+  const BookstoreLandscapeCard({
     super.key,
-    required this.restaurant,
+    required this.bookstore,
     required this.onTap,
   });
 
@@ -31,14 +31,14 @@ class RestaurantLandscapeCard extends StatelessWidget {
               child: AspectRatio(
                   aspectRatio: 2,
                   child: Hero(
-                    tag: 'restaurant-image-${restaurant.id}',
-                    child: Image.asset(restaurant.imageUrl, fit: BoxFit.cover),
+                    tag: 'bookstore-image-${bookstore.id}',
+                    child: Image.asset(bookstore.imageUrl, fit: BoxFit.cover),
                   ),
                 ),
             ),
             ListTile(
-              title: Text(restaurant.name, style: textTheme.titleSmall),
-              subtitle: Text(restaurant.attributes,
+              title: Text(bookstore.name, style: textTheme.titleSmall),
+              subtitle: Text(bookstore.attributes,
                   maxLines: 1, style: textTheme.bodySmall),
             ),
           ],
