@@ -38,4 +38,17 @@ class Ingredient {
       amount: amount ?? this.amount,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Ingredient &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          recipeId == other.recipeId &&
+          name == other.name &&
+          amount == other.amount;
+
+  @override
+  int get hashCode => Object.hash(id, recipeId, name, amount);
 }
