@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:core';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/current_book_data.dart';
 import '../models/models.dart';
 import 'repository.dart';
 
