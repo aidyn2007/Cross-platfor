@@ -1,197 +1,195 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/current_recipe_data.dart';
+import '../models/current_book_data.dart';
 import '../models/models.dart';
 import 'repository.dart';
-import '../database/recipe_db.dart';
+import '../database/book_db.dart';
 
-class DBRepository extends Notifier<CurrentRecipeData> implements Repository {
-  late RecipeDatabase recipeDatabase;
-  late RecipeDao _recipeDao;
-  late IngredientDao _ingredientDao;
-  Stream<List<Ingredient>>? ingredientStream;
-  Stream<List<Recipe>>? recipeStream;
+class DBRepository extends Notifier<CurrentBookData> implements Repository {
+  late BookDatabase bookDatabase;
+  late BookDao _bookDao;
+  late BookTagDao _bookTagDao;
+  Stream<List<BookTag>>? tagStream;
+  Stream<List<Book>>? bookStream;
 
-  DBRepository({RecipeDatabase? recipeDatabase})
-      : recipeDatabase = recipeDatabase ?? RecipeDatabase();
+  DBRepository({BookDatabase? bookDatabase})
+      : bookDatabase = bookDatabase ?? BookDatabase();
 
   @override
-  CurrentRecipeData build() {
-    const currentRecipeData = CurrentRecipeData();
-    return currentRecipeData;
+  CurrentBookData build() {
+    const currentBookData = CurrentBookData();
+    return currentBookData;
   }
 
   @override
-  Future<List<Recipe>> findAllRecipes() {
-    return _recipeDao.findAllRecipes().then<List<Recipe>>(
-      (List<DbRecipeData> dbRecipes) async {
-        final recipes = <Recipe>[];
-        for (final dbRecipe in dbRecipes) {
-          final ingredients = await findRecipeIngredients(dbRecipe.id);
-          final recipe = dbRecipeToModelRecipe(dbRecipe, ingredients);
-          recipes.add(recipe);
+  Future<List<Book>> findAllBooks() {
+    return _bookDao.findAllBooks().then<List<Book>>(
+      (List<DbBookData> dbBooks) async {
+        final books = <Book>[];
+        for (final dbBook in dbBooks) {
+          final tags = await findBookTags(dbBook.id);
+          final book = dbBookToModelBook(dbBook, tags);
+          books.add(book);
         }
-        return recipes;
+        return books;
       },
     );
   }
 
   @override
-  Stream<List<Recipe>> watchAllRecipes() {
-    recipeStream ??= _recipeDao.watchAllRecipes();
-    return recipeStream!;
+  Stream<List<Book>> watchAllBooks() {
+    bookStream ??= _bookDao.watchAllBooks();
+    return bookStream!;
   }
 
   @override
-  Stream<List<Ingredient>> watchAllIngredients() {
-    if (ingredientStream == null) {
-      final stream = _ingredientDao.watchAllIngredients();
-      ingredientStream = stream.map(
-        (dbIngredients) {
-          final ingredients = <Ingredient>[];
-          for (final dbIngredient in dbIngredients) {
-            ingredients.add(dbIngredientToIngredient(dbIngredient));
+  Stream<List<BookTag>> watchAllTags() {
+    if (tagStream == null) {
+      final stream = _bookTagDao.watchAllTags();
+      tagStream = stream.map(
+        (dbTags) {
+          final tags = <BookTag>[];
+          for (final dbTag in dbTags) {
+            tags.add(dbBookTagToBookTag(dbTag));
           }
-          return ingredients;
+          return tags;
         },
       );
     }
-    return ingredientStream!;
+    return tagStream!;
   }
 
   @override
-  Future<Recipe> findRecipeById(int id) async {
-    final ingredients = await findRecipeIngredients(id);
-    return _recipeDao.findRecipeById(id).then((listOfRecipes) =>
-        dbRecipeToModelRecipe(listOfRecipes.first, ingredients));
+  Future<Book> findBookById(int id) async {
+    final tags = await findBookTags(id);
+    return _bookDao
+        .findBookById(id)
+        .then((listOfBooks) => dbBookToModelBook(listOfBooks.first, tags));
   }
 
   @override
-  Future<List<Ingredient>> findAllIngredients() {
-    return _ingredientDao.findAllIngredients().then<List<Ingredient>>(
-      (List<DbIngredientData> dbIngredients) {
-        final ingredients = <Ingredient>[];
-        for (final ingredient in dbIngredients) {
-          ingredients.add(dbIngredientToIngredient(ingredient));
+  Future<List<BookTag>> findAllTags() {
+    return _bookTagDao.findAllTags().then<List<BookTag>>(
+      (List<DbBookTagData> dbTags) {
+        final tags = <BookTag>[];
+        for (final tag in dbTags) {
+          tags.add(dbBookTagToBookTag(tag));
         }
-        return ingredients;
+        return tags;
       },
     );
   }
 
   @override
-  Future<List<Ingredient>> findRecipeIngredients(int recipeId) {
-    return _ingredientDao.findRecipeIngredients(recipeId).then(
-      (listOfIngredients) {
-        final ingredients = <Ingredient>[];
-        for (final ingredient in listOfIngredients) {
-          ingredients.add(
-            dbIngredientToIngredient(ingredient),
-          );
+  Future<List<BookTag>> findBookTags(int bookId) {
+    return _bookTagDao.findBookTags(bookId).then(
+      (listOfTags) {
+        final tags = <BookTag>[];
+        for (final tag in listOfTags) {
+          tags.add(dbBookTagToBookTag(tag));
         }
-        return ingredients;
+        return tags;
       },
     );
   }
 
   @override
-  Future<int> insertRecipe(Recipe recipe) {
-    if (state.currentRecipes.contains(recipe)) {
+  Future<int> insertBook(Book book) {
+    if (state.currentBooks.contains(book)) {
       return Future.value(0);
     }
     return Future(
       () async {
         state =
-            state.copyWith(currentRecipes: [...state.currentRecipes, recipe]);
-        final id = await _recipeDao.insertRecipe(
-          recipeToInsertableDbRecipe(recipe),
+            state.copyWith(currentBooks: [...state.currentBooks, book]);
+        final id = await _bookDao.insertBook(
+          bookToInsertableDbBook(book),
         );
-        final ingredients = <Ingredient>[];
-        for (final ingredient in recipe.ingredients) {
-          ingredients.add(ingredient.copyWith(recipeId: id));
+        final tags = <BookTag>[];
+        for (final tag in book.tags) {
+          tags.add(tag.copyWith(bookId: id));
         }
-        insertIngredients(ingredients);
+        insertTags(tags);
         return id;
       },
     );
   }
 
   @override
-  Future<List<int>> insertIngredients(List<Ingredient> ingredients) {
+  Future<List<int>> insertTags(List<BookTag> tags) {
     return Future(
       () {
-        if (ingredients.isEmpty) {
+        if (tags.isEmpty) {
           return <int>[];
         }
         final resultIds = <int>[];
-        for (final ingredient in ingredients) {
-          final dbIngredient = ingredientToInsertableDbIngredient(ingredient);
-          _ingredientDao
-              .insertIngredient(dbIngredient)
+        for (final tag in tags) {
+          final dbTag = bookTagToInsertableDbBookTag(tag);
+          _bookTagDao
+              .insertTag(dbTag)
               .then((int id) => resultIds.add(id));
         }
         state = state.copyWith(
-            currentIngredients: [...state.currentIngredients, ...ingredients]);
+            currentTags: [...state.currentTags, ...tags]);
         return resultIds;
       },
     );
   }
 
   @override
-  Future<void> deleteRecipe(Recipe recipe) {
-    if (recipe.id != null) {
-      final updatedList = [...state.currentRecipes];
-      updatedList.remove(recipe);
-      state = state.copyWith(currentRecipes: updatedList);
-      _recipeDao.deleteRecipe(recipe.id!);
-      deleteRecipeIngredients(recipe.id!);
+  Future<void> deleteBook(Book book) {
+    if (book.id != null) {
+      final updatedList = [...state.currentBooks];
+      updatedList.remove(book);
+      state = state.copyWith(currentBooks: updatedList);
+      _bookDao.deleteBook(book.id!);
+      deleteBookTags(book.id!);
     }
     return Future.value();
   }
 
   @override
-  Future<void> deleteIngredient(Ingredient ingredient) {
-    if (ingredient.id != null) {
-      final updatedList = [...state.currentIngredients];
-      updatedList.remove(ingredient);
-      state = state.copyWith(currentIngredients: updatedList);
-      return _ingredientDao.deleteIngredient(ingredient.id!);
+  Future<void> deleteTag(BookTag tag) {
+    if (tag.id != null) {
+      final updatedList = [...state.currentTags];
+      updatedList.remove(tag);
+      state = state.copyWith(currentTags: updatedList);
+      return _bookTagDao.deleteTag(tag.id!);
     } else {
       return Future.value();
     }
   }
 
   @override
-  Future<void> deleteIngredients(List<Ingredient> ingredients) {
-    for (final ingredient in ingredients) {
-      if (ingredient.id != null) {
-        final updatedList = [...state.currentIngredients];
-        updatedList
-            .removeWhere((ingredient) => ingredients.contains(ingredient));
-        state = state.copyWith(currentIngredients: updatedList);
-        _ingredientDao.deleteIngredient(ingredient.id!);
+  Future<void> deleteTags(List<BookTag> tags) {
+    for (final tag in tags) {
+      if (tag.id != null) {
+        final updatedList = [...state.currentTags];
+        updatedList.removeWhere((t) => tags.contains(t));
+        state = state.copyWith(currentTags: updatedList);
+        _bookTagDao.deleteTag(tag.id!);
       }
     }
     return Future.value();
   }
 
   @override
-  Future<void> deleteRecipeIngredients(int recipeId) async {
-    final updatedList = [...state.currentIngredients];
-    updatedList.removeWhere((ingredient) => ingredient.recipeId == recipeId);
-    state = state.copyWith(currentIngredients: updatedList);
-    final ingredients = await findRecipeIngredients(recipeId);
-    return deleteIngredients(ingredients);
+  Future<void> deleteBookTags(int bookId) async {
+    final updatedList = [...state.currentTags];
+    updatedList.removeWhere((tag) => tag.bookId == bookId);
+    state = state.copyWith(currentTags: updatedList);
+    final tags = await findBookTags(bookId);
+    return deleteTags(tags);
   }
 
   @override
   Future init() async {
-    _recipeDao = recipeDatabase.recipeDao;
-    _ingredientDao = recipeDatabase.ingredientDao;
+    _bookDao = bookDatabase.bookDao;
+    _bookTagDao = bookDatabase.bookTagDao;
   }
 
   @override
   void close() {
-    recipeDatabase.close();
+    bookDatabase.close();
   }
 }

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:chopper/chopper.dart';
-import '../data/models/recipe.dart';
+import '../data/models/book.dart';
 import 'model_response.dart';
 import 'query_result.dart';
 import 'service_interface.dart';
@@ -19,13 +19,13 @@ abstract class SpoonacularService extends ChopperService
     implements ServiceInterface {
   @override
   @Get(path: 'recipes/{id}/information?includeNutrition=false')
-  Future<RecipeDetailsResponse> queryRecipe(
+  Future<BookDetailsResponse> queryBook(
     @Path('id') String id,
   );
 
   @override
   @Get(path: 'recipes/complexSearch')
-  Future<RecipeResponse> queryRecipes(
+  Future<BookResponse> queryBooks(
     @Query('query') String query,
     @Query('offset') int offset,
     @Query('number') int number,

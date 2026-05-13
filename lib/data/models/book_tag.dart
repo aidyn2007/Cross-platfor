@@ -1,39 +1,39 @@
-class Ingredient {
+class BookTag {
   final int? id;
-  final int? recipeId;
+  final int? bookId;
   final String? name;
   final double? amount;
 
-  const Ingredient({
+  const BookTag({
     this.id,
-    this.recipeId,
+    this.bookId,
     this.name,
     this.amount,
   });
 
-  factory Ingredient.fromJson(Map<String, dynamic> json) => Ingredient(
+  factory BookTag.fromJson(Map<String, dynamic> json) => BookTag(
         id: json['id'] as int?,
-        recipeId: json['recipeId'] as int?,
+        bookId: json['bookId'] as int?,
         name: json['name'] as String?,
         amount: (json['amount'] as num?)?.toDouble(),
       );
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        'recipeId': recipeId,
+        'bookId': bookId,
         'name': name,
         'amount': amount,
       };
 
-  Ingredient copyWith({
+  BookTag copyWith({
     int? id,
-    int? recipeId,
+    int? bookId,
     String? name,
     double? amount,
   }) {
-    return Ingredient(
+    return BookTag(
       id: id ?? this.id,
-      recipeId: recipeId ?? this.recipeId,
+      bookId: bookId ?? this.bookId,
       name: name ?? this.name,
       amount: amount ?? this.amount,
     );
@@ -42,13 +42,13 @@ class Ingredient {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is Ingredient &&
+      other is BookTag &&
           runtimeType == other.runtimeType &&
           id == other.id &&
-          recipeId == other.recipeId &&
+          bookId == other.bookId &&
           name == other.name &&
           amount == other.amount;
 
   @override
-  int get hashCode => Object.hash(id, recipeId, name, amount);
+  int get hashCode => Object.hash(id, bookId, name, amount);
 }

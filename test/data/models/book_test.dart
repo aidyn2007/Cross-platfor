@@ -2,62 +2,58 @@ import 'package:yummy/data/models/models.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('Recipe', () {
+  group('Book', () {
     test('can instantiate', () {
-      // Arrange
-      late Recipe recipe;
+      late Book book;
 
-      // Act
-      recipe = const Recipe();
+      book = const Book();
 
-      // Assert
-      expect(recipe, isNotNull);
+      expect(book, isNotNull);
     });
     test('can receive parameters', () {
-      late Recipe recipe;
+      late Book book;
       const id = 123;
       const label = 'Pasta with Garlic, Scallions, Cauliflower & Breadcrumbs';
       const image = 'https://spoonacular.com/recipeImages/716429-556x370.jpg';
       const description =
           'Pasta with Garlic, Scallions, Cauliflower & Breadcrumbs might be a good recipe to expand your main course repertoire.';
       const bookmarked = true;
-      const ingredients = [
-        Ingredient(
+      const tags = [
+        BookTag(
           id: 1123,
-          recipeId: 123,
+          bookId: 123,
           name: 'Pasta',
           amount: 1.0,
         ),
-        Ingredient(
+        BookTag(
           id: 1124,
-          recipeId: 123,
+          bookId: 123,
           name: 'Garlic',
           amount: 1.0,
         ),
-        Ingredient(
+        BookTag(
           id: 1125,
-          recipeId: 123,
+          bookId: 123,
           name: 'Breadcrumbs',
           amount: 5.0,
         ),
       ];
 
-      recipe = const Recipe(
+      book = const Book(
         id: id,
         label: label,
         image: image,
         description: description,
         bookmarked: bookmarked,
-        ingredients: ingredients,
+        tags: tags,
       );
 
-      // Assert
-      expect(recipe.id, equals(id));
-      expect(recipe.label, equals(label));
-      expect(recipe.image, equals(image));
-      expect(recipe.description, equals(description));
-      expect(recipe.bookmarked, equals(bookmarked));
-      expect(recipe.ingredients, equals(ingredients));
+      expect(book.id, equals(id));
+      expect(book.label, equals(label));
+      expect(book.image, equals(image));
+      expect(book.description, equals(description));
+      expect(book.bookmarked, equals(bookmarked));
+      expect(book.tags, equals(tags));
     });
   });
 }

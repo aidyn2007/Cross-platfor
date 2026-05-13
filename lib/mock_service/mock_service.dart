@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/services.dart';
 
-import '../data/models/recipe.dart';
+import '../data/models/book.dart';
 import '../network/model_response.dart';
 import '../network/query_result.dart';
 import '../network/service_interface.dart';
@@ -12,56 +12,56 @@ import 'package:http/http.dart' as http;
 import 'package:chopper/chopper.dart';
 
 class MockService implements ServiceInterface {
-  late QueryResult _currentRecipes1;
-  late QueryResult _currentRecipes2;
-  late Recipe recipeDetails;
-  Random nextRecipe = Random();
+  late QueryResult _currentBooks1;
+  late QueryResult _currentBooks2;
+  late Book bookDetails;
+  Random nextBook = Random();
 
   static Future<MockService> create() async {
     final mockService = MockService();
-    await mockService.loadRecipes();
+    await mockService.loadBooks();
     return mockService;
   }
 
-  Future loadRecipes() async {
-    // Recipe List 1
+  Future loadBooks() async {
+    // Book List 1
     var jsonString = await rootBundle.loadString('assets/recipes1.json');
     var spoonacularResults =
         SpoonacularResults.fromJson(jsonDecode(jsonString));
-    var recipes = spoonacularResultsToRecipe(spoonacularResults);
+    var books = spoonacularResultsToBook(spoonacularResults);
     var apiQueryResults = QueryResult(
         offset: spoonacularResults.offset,
         number: spoonacularResults.number,
         totalResults: spoonacularResults.totalResults,
-        recipes: recipes);
-    _currentRecipes1 = apiQueryResults;
+        books: books);
+    _currentBooks1 = apiQueryResults;
 
-    // Recipe List 2
+    // Book List 2
     jsonString = await rootBundle.loadString('assets/recipes2.json');
     spoonacularResults = SpoonacularResults.fromJson(jsonDecode(jsonString));
-    recipes = spoonacularResultsToRecipe(spoonacularResults);
+    books = spoonacularResultsToBook(spoonacularResults);
     apiQueryResults = QueryResult(
         offset: spoonacularResults.offset,
         number: spoonacularResults.number,
         totalResults: spoonacularResults.totalResults,
-        recipes: recipes);
-    _currentRecipes2 = apiQueryResults;
+        books: books);
+    _currentBooks2 = apiQueryResults;
 
-    // Recipe Details
+    // Book Details
     jsonString = await rootBundle.loadString('assets/recipe_details.json');
     final spoonacularRecipe =
         SpoonacularRecipe.fromJson(jsonDecode(jsonString));
-    spoonacularRecipe.id = recipes[0].id!;
-    recipeDetails = spoonacularRecipeToRecipe(spoonacularRecipe);
+    spoonacularRecipe.id = books[0].id!;
+    bookDetails = spoonacularRecipeToBook(spoonacularRecipe);
   }
 
   @override
-  Future<RecipeResponse> queryRecipes(
+  Future<BookResponse> queryBooks(
     String query,
     int offset,
     int number,
   ) {
-    switch (nextRecipe.nextInt(2)) {
+    switch (nextBook.nextInt(2)) {
       case 0:
         return Future.value(
           Response(
@@ -70,7 +70,7 @@ class MockService implements ServiceInterface {
               200,
               request: null,
             ),
-            Success<QueryResult>(_currentRecipes1),
+            Success<QueryResult>(_currentBooks1),
           ),
         );
       case 1:
@@ -81,7 +81,7 @@ class MockService implements ServiceInterface {
               200,
               request: null,
             ),
-            Success<QueryResult>(_currentRecipes2),
+            Success<QueryResult>(_currentBooks2),
           ),
         );
       default:
@@ -92,14 +92,14 @@ class MockService implements ServiceInterface {
               200,
               request: null,
             ),
-            Success<QueryResult>(_currentRecipes1),
+            Success<QueryResult>(_currentBooks1),
           ),
         );
     }
   }
 
   @override
-  Future<RecipeDetailsResponse> queryRecipe(String id) {
+  Future<BookDetailsResponse> queryBook(String id) {
     return Future.value(
       Response(
         http.Response(
@@ -107,7 +107,7 @@ class MockService implements ServiceInterface {
           200,
           request: null,
         ),
-        Success<Recipe>(recipeDetails),
+        Success<Book>(bookDetails),
       ),
     );
   }

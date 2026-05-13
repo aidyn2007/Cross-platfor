@@ -1,7 +1,7 @@
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
-import 'package:yummy/data/database/recipe_db.dart';
+import 'package:yummy/data/database/book_db.dart';
 import 'package:yummy/data/models/models.dart';
 import 'package:yummy/data/repositories/db_repository.dart';
 import 'package:test/test.dart';
@@ -9,34 +9,34 @@ import 'package:test/test.dart';
 import 'db_repository_test.mocks.dart';
 
 @GenerateNiceMocks([
-  MockSpec<RecipeDatabase>(),
-  MockSpec<RecipeDao>(),
-  MockSpec<IngredientDao>(),
+  MockSpec<BookDatabase>(),
+  MockSpec<BookDao>(),
+  MockSpec<BookTagDao>(),
 ])
 void main() {
-  final mockDb = MockRecipeDatabase();
-  final mockIngredientDao = MockIngredientDao();
-  final mockRecipeDao = MockRecipeDao();
+  final mockDb = MockBookDatabase();
+  final mockBookTagDao = MockBookTagDao();
+  final mockBookDao = MockBookDao();
 
-  when(mockDb.ingredientDao).thenReturn(mockIngredientDao);
-  when(mockDb.recipeDao).thenReturn(mockRecipeDao);
+  when(mockDb.bookTagDao).thenReturn(mockBookTagDao);
+  when(mockDb.bookDao).thenReturn(mockBookDao);
 
-  final randomIngredients = [
-    const Ingredient(
+  final randomTags = [
+    const BookTag(
       id: 1123,
-      recipeId: 123,
+      bookId: 123,
       name: 'Pasta',
       amount: 1.0,
     ),
-    const Ingredient(
+    const BookTag(
       id: 1124,
-      recipeId: 123,
+      bookId: 123,
       name: 'Garlic',
       amount: 1.0,
     ),
-    const Ingredient(
+    const BookTag(
       id: 1125,
-      recipeId: 123,
+      bookId: 123,
       name: 'Breadcrumbs',
       amount: 5.0,
     ),
@@ -44,42 +44,36 @@ void main() {
 
   group('DBRepository', () {
     test('can instantiate', () {
-      // Arrange
       late DBRepository dbRepository;
 
-      // Act
       dbRepository = DBRepository(
-        recipeDatabase: mockDb,
+        bookDatabase: mockDb,
       );
 
-      // Assert
       expect(dbRepository, isNotNull);
-      expect(dbRepository.recipeDatabase, isNotNull);
+      expect(dbRepository.bookDatabase, isNotNull);
     });
 
-    test('can findAllIngredients', () async {
-      // Arrange
+    test('can findAllTags', () async {
       final dbRepository = DBRepository(
-        recipeDatabase: mockDb,
+        bookDatabase: mockDb,
       );
       await dbRepository.init();
-      when(mockIngredientDao.findAllIngredients()).thenAnswer(
-        (_) async => randomIngredients
-            .map((e) => DbIngredientData(
+      when(mockBookTagDao.findAllTags()).thenAnswer(
+        (_) async => randomTags
+            .map((e) => DbBookTagData(
                   id: e.id!,
-                  recipeId: e.recipeId!,
+                  bookId: e.bookId!,
                   name: e.name!,
                   amount: e.amount!,
                 ))
             .toList(),
       );
 
-      // Act
-      final result = await dbRepository.findAllIngredients();
+      final result = await dbRepository.findAllTags();
 
-      // Assert
-      verify(mockIngredientDao.findAllIngredients()).called(1);
-      expect(result, equals(randomIngredients));
+      verify(mockBookTagDao.findAllTags()).called(1);
+      expect(result, equals(randomTags));
     });
   });
 }

@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
-import '../../data/models/recipe.dart';
+import '../../data/models/book.dart';
 import '../../providers.dart';
-import '../recipes/recipe_details.dart';
+import '../recipes/book_view.dart';
 
 class LibraryPage extends ConsumerStatefulWidget {
   const LibraryPage({super.key});
@@ -17,12 +17,12 @@ class LibraryPage extends ConsumerStatefulWidget {
 }
 
 class _LibraryPageState extends ConsumerState<LibraryPage> {
-  late Stream<List<Recipe>> _recipeStream;
+  late Stream<List<Book>> _bookStream;
 
   @override
   void initState() {
     super.initState();
-    _recipeStream = ref.read(repositoryProvider.notifier).watchAllRecipes();
+    _bookStream = ref.read(repositoryProvider.notifier).watchAllBooks();
   }
 
   @override
@@ -33,8 +33,8 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(child: _buildHeader(context, colorScheme)),
-          StreamBuilder<List<Recipe>>(
-            stream: _recipeStream,
+          StreamBuilder<List<Book>>(
+            stream: _bookStream,
             builder: (context, snapshot) {
               final books = snapshot.data ?? [];
 
@@ -90,7 +90,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
     );
   }
 
-  Widget _buildBookTile(BuildContext context, Recipe book) {
+  Widget _buildBookTile(BuildContext context, Book book) {
     return Slidable(
       key: ValueKey(book.sourceId ?? book.id ?? book.label),
       endActionPane: ActionPane(
@@ -103,7 +103,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
             foregroundColor: Colors.black,
             icon: Icons.delete_outline,
             onPressed: (context) {
-              ref.read(repositoryProvider.notifier).deleteRecipe(book);
+              ref.read(repositoryProvider.notifier).deleteBook(book);
             },
           ),
         ],
@@ -129,7 +129,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
               context,
               MaterialPageRoute(
                 builder: (context) =>
-                    RecipeDetails(recipe: book.copyWith(bookmarked: true)),
+                    BookView(book: book.copyWith(bookmarked: true)),
               ),
             );
           },

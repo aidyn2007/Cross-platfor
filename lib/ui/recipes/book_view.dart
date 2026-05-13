@@ -4,46 +4,46 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers.dart';
-import '../../data/models/recipe.dart';
+import '../../data/models/book.dart';
 import '../../network/model_response.dart';
 import '../theme/colors.dart';
 import '../widgets/common.dart';
 
-class RecipeDetails extends ConsumerStatefulWidget {
-  final Recipe recipe;
+class BookView extends ConsumerStatefulWidget {
+  final Book book;
 
-  const RecipeDetails({
+  const BookView({
     super.key,
-    required this.recipe,
+    required this.book,
   });
 
   @override
-  ConsumerState<RecipeDetails> createState() => _RecipeDetailsState();
+  ConsumerState<BookView> createState() => _BookViewState();
 }
 
-class _RecipeDetailsState extends ConsumerState<RecipeDetails> {
-  Recipe? recipeDetail;
+class _BookViewState extends ConsumerState<BookView> {
+  Book? bookDetail;
 
   @override
   void initState() {
     super.initState();
-    loadRecipe();
+    loadBook();
   }
 
-  void loadRecipe() async {
-    if (widget.recipe.sourceId == null) {
-      recipeDetail = widget.recipe;
+  void loadBook() async {
+    if (widget.book.sourceId == null) {
+      bookDetail = widget.book;
       return;
     }
 
-    final bookId = widget.recipe.sourceId ?? widget.recipe.id.toString();
-    final response = await ref.read(serviceProvider).queryRecipe(bookId);
+    final bookId = widget.book.sourceId ?? widget.book.id.toString();
+    final response = await ref.read(serviceProvider).queryBook(bookId);
     final result = response.body;
-    if (result is Success<Recipe>) {
+    if (result is Success<Book>) {
       final body = result.value;
       if (mounted) {
         setState(() {
-          recipeDetail = body;
+          bookDetail = body;
         });
       }
     }
@@ -54,7 +54,7 @@ class _RecipeDetailsState extends ConsumerState<RecipeDetails> {
     final maxHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.recipe.label ?? 'Details'),
+        title: Text(widget.book.label ?? 'Details'),
       ),
       body: SafeArea(
         child: Container(
@@ -104,7 +104,7 @@ class _RecipeDetailsState extends ConsumerState<RecipeDetails> {
         Align(
           alignment: Alignment.topCenter,
           child: Hero(
-            tag: 'recipe-${widget.recipe.id}',
+            tag: 'book-${widget.book.id}',
             child: _buildBookImage(),
           ),
         ),
@@ -113,7 +113,7 @@ class _RecipeDetailsState extends ConsumerState<RecipeDetails> {
   }
 
   Widget _buildBookImage() {
-    final image = widget.recipe.image ?? '';
+    final image = widget.book.image ?? '';
 
     if (image.startsWith('assets/')) {
       return Image.asset(
@@ -137,7 +137,7 @@ class _RecipeDetailsState extends ConsumerState<RecipeDetails> {
 
   Widget titleRow() {
     final repository = ref.read(repositoryProvider.notifier);
-    final bookmarked = widget.recipe.bookmarked;
+    final bookmarked = widget.book.bookmarked;
     const titleRowColor = Colors.black;
     return Container(
       decoration: const BoxDecoration(color: lightGreen),
@@ -147,7 +147,7 @@ class _RecipeDetailsState extends ConsumerState<RecipeDetails> {
           children: [
             Expanded(
               child: AutoSizeText(
-                widget.recipe.label ?? '',
+                widget.book.label ?? '',
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
                 style: const TextStyle(fontSize: 24, color: titleRowColor),
@@ -160,13 +160,13 @@ class _RecipeDetailsState extends ConsumerState<RecipeDetails> {
               ),
               onPressed: () {
                 if (!bookmarked) {
-                  if (recipeDetail != null) {
+                  if (bookDetail != null) {
                     repository
-                        .insertRecipe(recipeDetail!.copyWith(bookmarked: true));
+                        .insertBook(bookDetail!.copyWith(bookmarked: true));
                   }
                 } else {
-                  if (recipeDetail != null) {
-                    repository.deleteRecipe(recipeDetail!);
+                  if (bookDetail != null) {
+                    repository.deleteBook(bookDetail!);
                   }
                 }
                 Navigator.pop(context);
@@ -182,7 +182,7 @@ class _RecipeDetailsState extends ConsumerState<RecipeDetails> {
   Widget description() {
     return Padding(
       padding: const EdgeInsets.only(left: 16.0, top: 24.0, right: 16.0),
-      child: Html(data: recipeDetail?.description ?? 'Loading description...'),
+      child: Html(data: bookDetail?.description ?? 'Loading description...'),
     );
   }
 }

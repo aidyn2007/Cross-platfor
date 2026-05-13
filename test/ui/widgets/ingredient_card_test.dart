@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_toolkit/golden_toolkit.dart';
-import 'package:yummy/ui/widgets/ingredient_card.dart';
+import 'package:yummy/ui/widgets/tag_card.dart';
 
 Widget _buildWrappedWidget(Widget child) {
   return MaterialApp(
@@ -16,12 +16,12 @@ Widget _buildWrappedWidget(Widget child) {
 }
 
 void main() {
-  const mockIngredientName = 'colby jack cheese';
-  group('IngredientCard', () {
+  const mockTagName = 'colby jack cheese';
+  group('TagCard', () {
     testWidgets('can build', (tester) async {
       await tester.pumpWidget(
-        _buildWrappedWidget(IngredientCard(
-          name: mockIngredientName,
+        _buildWrappedWidget(TagCard(
+          name: mockTagName,
           initiallyChecked: false,
           evenRow: true,
           showCheckbox: true,
@@ -29,8 +29,8 @@ void main() {
         )),
       );
 
-      final cardFinder = find.byType(IngredientCard);
-      final titleFinder = find.text(mockIngredientName);
+      final cardFinder = find.byType(TagCard);
+      final titleFinder = find.text(mockTagName);
 
       expect(cardFinder, findsOneWidget);
       expect(titleFinder, findsOneWidget);
@@ -39,8 +39,8 @@ void main() {
     testWidgets('can be checked when tapped', (tester) async {
       var isChecked = false;
       await tester.pumpWidget(
-        _buildWrappedWidget(IngredientCard(
-          name: mockIngredientName,
+        _buildWrappedWidget(TagCard(
+          name: mockTagName,
           initiallyChecked: isChecked,
           evenRow: true,
           showCheckbox: true,
@@ -59,13 +59,13 @@ void main() {
     });
   });
 
-  group('Golden Tests - IngredientCard', () {
+  group('Golden Tests - TagCard', () {
     testGoldens('can support light theme', (tester) async {
       final builder = GoldenBuilder.grid(columns: 2, widthToHeightRatio: 1)
         ..addScenario(
           'Light - Unchecked',
-          IngredientCard(
-            name: mockIngredientName,
+          TagCard(
+            name: mockTagName,
             initiallyChecked: false,
             evenRow: true,
             showCheckbox: true,
@@ -74,8 +74,8 @@ void main() {
         )
         ..addScenario(
           'Light - Checked',
-          IngredientCard(
-            name: mockIngredientName,
+          TagCard(
+            name: mockTagName,
             initiallyChecked: true,
             evenRow: true,
             showCheckbox: true,
@@ -84,8 +84,8 @@ void main() {
         )
         ..addScenario(
           'Light - Odd - Unchecked',
-          IngredientCard(
-            name: mockIngredientName,
+          TagCard(
+            name: mockTagName,
             initiallyChecked: false,
             evenRow: false,
             showCheckbox: true,
@@ -94,8 +94,8 @@ void main() {
         )
         ..addScenario(
           'Light - Odd - Checked',
-          IngredientCard(
-            name: mockIngredientName,
+          TagCard(
+            name: mockTagName,
             initiallyChecked: true,
             evenRow: false,
             showCheckbox: true,
@@ -108,7 +108,7 @@ void main() {
           theme: ThemeData.light(),
         ),
       );
-      await screenMatchesGolden(tester, 'light_ingredient_card');
+      await screenMatchesGolden(tester, 'light_tag_card');
     });
   });
 }

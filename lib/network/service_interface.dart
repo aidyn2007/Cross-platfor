@@ -1,19 +1,19 @@
 import 'package:chopper/chopper.dart';
-import '../data/models/recipe.dart';
+import '../data/models/book.dart';
 import 'model_response.dart';
 import 'query_result.dart';
 
-typedef RecipeResponse = Response<Result<QueryResult>>;
-typedef RecipeDetailsResponse = Response<Result<Recipe>>;
+typedef BookResponse = Response<Result<QueryResult>>;
+typedef BookDetailsResponse = Response<Result<Book>>;
 
 abstract class ServiceInterface {
-  Future<RecipeResponse> queryRecipes(
+  Future<BookResponse> queryBooks(
     String query,
     int offset,
     int number,
   );
 
-  Future<RecipeDetailsResponse> queryRecipe(
+  Future<BookDetailsResponse> queryBook(
       String id,
       );
 }

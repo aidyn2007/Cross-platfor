@@ -54,14 +54,14 @@ class ImageLinks {
       );
 }
 
-Recipe googleBookToRecipe(GoogleBook book) {
-  return Recipe(
+Book googleBookToBook(GoogleBook book) {
+  return Book(
     id: book.id.hashCode,
     sourceId: book.id,
     label: book.volumeInfo.title ?? 'No Title',
     image: book.volumeInfo.imageLinks?.thumbnail?.replaceAll('http:', 'https:'),
     description: book.volumeInfo.description ?? 'No description available.',
     bookmarked: false,
-    ingredients: [],
+    tags: [],
   );
 }

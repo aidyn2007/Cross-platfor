@@ -5,23 +5,23 @@ import '../constants.dart';
 import '../models/models.dart';
 import 'checkout_page.dart';
 
-class RestaurantPage extends StatefulWidget {
-  final Restaurant restaurant;
+class BookstorePage extends StatefulWidget {
+  final Bookstore bookstore;
   final CartManager cartManager;
   final OrderManager ordersManager;
 
-  const RestaurantPage({
+  const BookstorePage({
     super.key,
-    required this.restaurant,
+    required this.bookstore,
     required this.cartManager,
     required this.ordersManager
   });
 
   @override
-  State<RestaurantPage> createState() => _RestaurantPageState();
+  State<BookstorePage> createState() => _BookstorePageState();
 }
 
-class _RestaurantPageState extends State<RestaurantPage> {
+class _BookstorePageState extends State<BookstorePage> {
   static const double largeScreenPercentage = 0.9;
   static const double maxWidth = 1000;
   static const desktopThreshold = 700;
@@ -61,7 +61,7 @@ class _RestaurantPageState extends State<RestaurantPage> {
             child: Stack(
               children: [
                 Hero(
-                  tag: 'restaurant-image-${widget.restaurant.id}',
+                  tag: 'bookstore-image-${widget.bookstore.id}',
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 30.0),
                     decoration: BoxDecoration(
@@ -75,7 +75,7 @@ class _RestaurantPageState extends State<RestaurantPage> {
                           ),
                         ],
                         image: DecorationImage(
-                            image: AssetImage(widget.restaurant.imageUrl),
+                            image: AssetImage(widget.bookstore.imageUrl),
                             fit: BoxFit.cover)),
                   ),
                 ),
@@ -89,20 +89,20 @@ class _RestaurantPageState extends State<RestaurantPage> {
 
   SliverToBoxAdapter _buildInfoSection() {
     final textTheme = Theme.of(context).textTheme;
-    final restaurant = widget.restaurant;
+    final bookstore = widget.bookstore;
     return SliverToBoxAdapter(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(restaurant.name, style: textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold)),
+            Text(bookstore.name, style: textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
             Row(
               children: [
                 const Icon(Icons.location_on, size: 16, color: Colors.grey),
                 const SizedBox(width: 4),
-                Expanded(child: Text(restaurant.address, style: textTheme.bodySmall)),
+                Expanded(child: Text(bookstore.address, style: textTheme.bodySmall)),
               ],
             ),
             const SizedBox(height: 8),
@@ -110,22 +110,22 @@ class _RestaurantPageState extends State<RestaurantPage> {
               children: [
                 const Icon(Icons.star, size: 16, color: Colors.amber),
                 const SizedBox(width: 4),
-                Text(restaurant.rating.toString(), style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold)),
+                Text(bookstore.rating.toString(), style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(width: 16),
                 const Icon(Icons.directions_walk, size: 16, color: Colors.grey),
                 const SizedBox(width: 4),
-                Text('${restaurant.distance} miles', style: textTheme.bodySmall),
+                Text('${bookstore.distance} miles', style: textTheme.bodySmall),
               ],
             ),
             const SizedBox(height: 8),
-            if (restaurant.attributes.isNotEmpty)
+            if (bookstore.attributes.isNotEmpty)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.secondaryContainer,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(restaurant.attributes, style: textTheme.labelSmall),
+                child: Text(bookstore.attributes, style: textTheme.labelSmall),
               ),
           ],
         ),
@@ -134,7 +134,7 @@ class _RestaurantPageState extends State<RestaurantPage> {
   }
 
   Widget _buildGridItem(int index) {
-    final item = widget.restaurant.items[index];
+    final item = widget.bookstore.items[index];
     return Card(
       elevation: 0,
       color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
@@ -142,7 +142,7 @@ class _RestaurantPageState extends State<RestaurantPage> {
       child: InkWell(
         onTap: () => _showBottomSheet(item),
         borderRadius: BorderRadius.circular(12),
-        child: RestaurantItem(item: item),
+        child: BookstoreItem(item: item),
       ),
     );
   }
@@ -167,7 +167,7 @@ class _RestaurantPageState extends State<RestaurantPage> {
         crossAxisCount: columns,
       ),
       itemBuilder: (context, index) => _buildGridItem(index),
-      itemCount: widget.restaurant.items.length,
+      itemCount: widget.bookstore.items.length,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
     );
@@ -190,7 +190,7 @@ class _RestaurantPageState extends State<RestaurantPage> {
     );
   }
 
-  void _showBottomSheet(Item item) {
+  void _showBottomSheet(Book item) {
     showModalBottomSheet<void>(
       isScrollControlled: true,
       context: context,

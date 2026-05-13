@@ -42,75 +42,77 @@ class CustomScrollBehavior extends MaterialScrollBehavior {
       };
 }
 
-class Yummy extends StatefulWidget {
+class Yummy extends ConsumerStatefulWidget {
   const Yummy({super.key});
 
   @override
-  State<Yummy> createState() => _YummyState();
+  ConsumerState<Yummy> createState() => _YummyState();
 }
 
-class _YummyState extends State<Yummy> {
+class _YummyState extends ConsumerState<Yummy> {
   ThemeMode themeMode = ThemeMode.light;
   ColorSelection colorSelected = ColorSelection.deepPurple;
 
-  final YummyAuth _auth = YummyAuth();
   final CartManager _cartManager = CartManager();
   final OrderManager _orderManager = OrderManager();
 
-  late final _router = GoRouter(
-    initialLocation: '/login',
-    redirect: _appRedirect,
-    routes: [
-      GoRoute(
-          path: '/login',
-          builder: (context, state) =>
-              LoginPage(onLogIn: (Credentials credentials) async {
-                _auth
-                    .signIn(credentials.username, credentials.password)
-                    .then((_) => context.go('/${YummyTab.home.value}'));
-              })),
-      GoRoute(
-          path: '/:tab',
-          builder: (context, state) {
-            return Home(
-              auth: _auth,
-              cartManager: _cartManager,
-              ordersManager: _orderManager,
-              changeTheme: changeThemeMode,
-              changeColor: changeColor,
-              colorSelected: colorSelected,
-              tab: int.tryParse(state.pathParameters['tab'] ?? '') ?? 0,
-              initialBookSearchQuery: state.uri.queryParameters['search'],
-            );
-          },
-          routes: [
-            GoRoute(
-                path: 'restaurant/:id',
-                builder: (context, state) {
-                  final id =
-                      int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-                  final restaurant = restaurants[id];
-                  return RestaurantPage(
-                    restaurant: restaurant,
-                    cartManager: _cartManager,
-                    ordersManager: _orderManager,
-                  );
-                }),
-          ]),
-    ],
-  );
+  late final UserDao _userDao;
+  late final GoRouter _router;
 
-  Future<String?> _appRedirect(
-      BuildContext context, GoRouterState state) async {
-    final loggedIn = await _auth.loggedIn;
+  @override
+  void initState() {
+    super.initState();
+    _userDao = ref.read(userDaoProvider);
+    _router = GoRouter(
+      initialLocation: '/login',
+      refreshListenable: _userDao,
+      redirect: _appRedirect,
+      routes: [
+        GoRoute(
+          path: '/login',
+          builder: (context, state) => const LoginPage(),
+        ),
+        GoRoute(
+            path: '/:tab',
+            builder: (context, state) {
+              return Home(
+                cartManager: _cartManager,
+                ordersManager: _orderManager,
+                changeTheme: changeThemeMode,
+                changeColor: changeColor,
+                colorSelected: colorSelected,
+                tab: int.tryParse(state.pathParameters['tab'] ?? '') ?? 0,
+                initialBookSearchQuery: state.uri.queryParameters['search'],
+              );
+            },
+            routes: [
+              GoRoute(
+                  path: 'bookstore/:id',
+                  builder: (context, state) {
+                    final id =
+                        int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+                    final bookstore = bookstores[id];
+                    return BookstorePage(
+                      bookstore: bookstore,
+                      cartManager: _cartManager,
+                      ordersManager: _orderManager,
+                    );
+                  }),
+            ]),
+      ],
+    );
+  }
+
+  String? _appRedirect(BuildContext context, GoRouterState state) {
+    final loggedIn = _userDao.isLoggedIn();
     final isOnLoginPage = state.matchedLocation == '/login';
 
     if (!loggedIn) {
-      return '/login';
-    } else if (loggedIn && isOnLoginPage) {
+      return isOnLoginPage ? null : '/login';
+    }
+    if (isOnLoginPage) {
       return '/${YummyTab.home.value}';
     }
-
     return null;
   }
 

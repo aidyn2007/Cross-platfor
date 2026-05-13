@@ -68,11 +68,8 @@ flutter:
   assets:
     - assets/
     - assets/categories/
-    - assets/restaurants/
+    - assets/bookstores/
     - assets/profile_pics/
     - assets/food/
     - assets/images/
     - assets/book_store_header.png
-    - assets/recipes1.json
-    - assets/recipes2.json
-    - assets/recipe_details.json

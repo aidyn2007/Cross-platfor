@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:chopper/chopper.dart';
-import 'package:yummy/data/models/recipe.dart';
+import 'package:yummy/data/models/book.dart';
 import 'package:yummy/network/model_response.dart';
 import 'package:yummy/network/query_result.dart';
 import 'package:yummy/network/service_interface.dart';
@@ -34,13 +34,13 @@ abstract class GoogleBooksService extends ChopperService
     implements ServiceInterface {
   @override
   @Get(path: 'volumes/{id}')
-  Future<RecipeDetailsResponse> queryRecipe(
+  Future<BookDetailsResponse> queryBook(
     @Path('id') String id,
   );
 
   @override
   @Get(path: 'volumes')
-  Future<RecipeResponse> queryRecipes(
+  Future<BookResponse> queryBooks(
     @Query('q') String query,
     @Query('startIndex') int offset,
     @Query('maxResults') int number,

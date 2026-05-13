@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../data/models/recipe.dart';
-import '../models/models.dart';
+import '../data/models/book.dart';
+import '../models/book_category.dart';
 import '../providers.dart';
 
 class BookDetailsPage extends ConsumerStatefulWidget {
-  final FoodCategory category;
+  final BookCategory category;
 
   const BookDetailsPage({super.key, required this.category});
 
@@ -163,7 +163,7 @@ class _BookDetailsPageState extends ConsumerState<BookDetailsPage>
   }
 
   void _addToLibrary() {
-    final book = Recipe(
+    final book = Book(
       id: widget.category.name.hashCode,
       label: widget.category.name,
       image: widget.category.imageUrl,
@@ -171,7 +171,7 @@ class _BookDetailsPageState extends ConsumerState<BookDetailsPage>
       bookmarked: true,
     );
 
-    ref.read(repositoryProvider.notifier).insertRecipe(book);
+    ref.read(repositoryProvider.notifier).insertBook(book);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('${widget.category.name} added to library')),

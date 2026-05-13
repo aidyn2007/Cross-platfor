@@ -36,20 +36,20 @@ class SpoonacularConverter implements Converter {
 
       if (mapData.keys.contains('totalResults')) {
         final spoonacularResults = SpoonacularResults.fromJson(mapData);
-        final recipes = spoonacularResultsToRecipe(spoonacularResults);
+        final books = spoonacularResultsToBook(spoonacularResults);
         final apiQueryResults = QueryResult(
             offset: spoonacularResults.offset,
             number: spoonacularResults.number,
             totalResults: spoonacularResults.totalResults,
-            recipes: recipes);
+            books: books);
         return response.copyWith<BodyType>(
           body: Success(apiQueryResults) as BodyType,
         );
       } else {
-        final spoonacularRecipe = SpoonacularRecipe.fromJson(mapData);
-        final recipe = spoonacularRecipeToRecipe(spoonacularRecipe);
+        final spoonacularBook = SpoonacularRecipe.fromJson(mapData);
+        final book = spoonacularRecipeToBook(spoonacularBook);
         return response.copyWith<BodyType>(
-          body: Success(recipe) as BodyType,
+          body: Success(book) as BodyType,
         );
       }
     } catch (e) {
