@@ -4,7 +4,7 @@ import 'package:mockito/mockito.dart';
 import 'package:yummy/data/database/book_db.dart';
 import 'package:yummy/data/models/models.dart';
 import 'package:yummy/data/repositories/db_repository.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import 'db_repository_test.mocks.dart';
 
