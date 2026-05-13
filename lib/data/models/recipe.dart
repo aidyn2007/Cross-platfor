@@ -61,4 +61,18 @@ class Recipe {
       ingredients: ingredients ?? this.ingredients,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Recipe &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          label == other.label &&
+          image == other.image &&
+          description == other.description &&
+          bookmarked == other.bookmarked;
+
+  @override
+  int get hashCode => Object.hash(id, label, image, description, bookmarked);
 }
