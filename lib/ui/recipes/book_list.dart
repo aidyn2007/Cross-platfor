@@ -9,6 +9,8 @@ import 'package:yummy/providers.dart';
 import 'package:yummy/ui/bookmarks/bookmarks.dart';
 import 'package:yummy/ui/book_card.dart';
 import 'package:yummy/ui/recipes/book_view.dart';
+import 'package:yummy/ui/theme/colors.dart';
+import 'package:yummy/ui/widgets/custom_dropdown.dart';
 
 enum ListType { all, bookmarks }
 
@@ -25,6 +27,8 @@ class BookList extends ConsumerStatefulWidget {
 }
 
 class _BookListState extends ConsumerState<BookList> {
+  static const String prefSearchKey = 'previousSearches';
+
   late TextEditingController searchTextController;
   final ScrollController _scrollController = ScrollController();
   List<Book> currentSearchList = [];
@@ -35,6 +39,7 @@ class _BookListState extends ConsumerState<BookList> {
   bool hasMore = false;
   bool loading = false;
   bool inErrorState = false;
+  List<String> previousSearches = <String>[];
   ListType currentType = ListType.all;
   Future<BookResponse>? currentResponse;
   bool newDataRequired = true;
@@ -42,6 +47,7 @@ class _BookListState extends ConsumerState<BookList> {
   @override
   void initState() {
     super.initState();
+    getPreviousSearches();
     searchTextController = TextEditingController(
       text: widget.initialSearchQuery?.trim() ?? '',
     );
@@ -89,6 +95,19 @@ class _BookListState extends ConsumerState<BookList> {
     super.dispose();
   }
 
+  void savePreviousSearches() {
+    final prefs = ref.read(sharedPrefProvider);
+    prefs.setStringList(prefSearchKey, previousSearches);
+  }
+
+  void getPreviousSearches() {
+    final prefs = ref.read(sharedPrefProvider);
+    if (prefs.containsKey(prefSearchKey)) {
+      final searches = prefs.getStringList(prefSearchKey);
+      previousSearches = searches ?? <String>[];
+    }
+  }
+
   void startSearch(String value) {
     setState(() {
       currentSearchList.clear();
@@ -98,6 +117,11 @@ class _BookListState extends ConsumerState<BookList> {
       currentStartPosition = 0;
       hasMore = false;
       currentResponse = null;
+      final trimmed = value.trim();
+      if (trimmed.isNotEmpty && !previousSearches.contains(trimmed)) {
+        previousSearches.add(trimmed);
+        savePreviousSearches();
+      }
     });
   }
 
@@ -111,6 +135,7 @@ class _BookListState extends ConsumerState<BookList> {
 
   Widget buildBookList() {
     return buildScrollList([
+      _buildHeader(),
       _buildTypePicker(),
       _buildSearchCard(),
     ], _buildBookLoader(context));
@@ -118,8 +143,34 @@ class _BookListState extends ConsumerState<BookList> {
 
   Widget buildBookmarkList() {
     return buildScrollList([
+      _buildHeader(),
       _buildTypePicker(),
     ], const Bookmarks());
+  }
+
+  Widget _buildHeader() {
+    return SizedBox(
+      height: 160.0,
+      child: ClipRRect(
+        borderRadius: const BorderRadius.all(Radius.circular(8)),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                color: lightGreen,
+              ),
+            ),
+            Image.asset(
+              'assets/images/background2.png',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  const SizedBox.shrink(),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget buildScrollList(List<Widget> topList, Widget bottomWidget) {
@@ -151,11 +202,18 @@ class _BookListState extends ConsumerState<BookList> {
           children: [
             IconButton(
               icon: const Icon(Icons.search),
-              onPressed: () => startSearch(searchTextController.text),
+              onPressed: () {
+                startSearch(searchTextController.text);
+                final currentFocus = FocusScope.of(context);
+                if (!currentFocus.hasPrimaryFocus) {
+                  currentFocus.unfocus();
+                }
+              },
             ),
             Expanded(
               child: TextField(
                 controller: searchTextController,
+                textInputAction: TextInputAction.done,
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   hintText: 'Search for books online...',
@@ -166,6 +224,32 @@ class _BookListState extends ConsumerState<BookList> {
             IconButton(
               icon: const Icon(Icons.close),
               onPressed: () => setState(() => searchTextController.clear()),
+            ),
+            PopupMenuButton<String>(
+              icon: const Icon(
+                Icons.arrow_drop_down,
+                color: lightGrey,
+              ),
+              onSelected: (String value) {
+                searchTextController.text = value;
+                startSearch(searchTextController.text);
+              },
+              itemBuilder: (BuildContext context) {
+                return previousSearches
+                    .map<CustomDropdownMenuItem<String>>((String value) {
+                  return CustomDropdownMenuItem<String>(
+                    text: value,
+                    value: value,
+                    callback: () {
+                      setState(() {
+                        previousSearches.remove(value);
+                        savePreviousSearches();
+                        Navigator.pop(context);
+                      });
+                    },
+                  );
+                }).toList();
+              },
             ),
           ],
         ),
