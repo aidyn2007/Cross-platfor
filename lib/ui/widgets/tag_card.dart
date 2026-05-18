@@ -1,44 +1,91 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../theme/colors.dart';
 
-class TagCard extends StatelessWidget {
+typedef OnChecked = void Function(bool);
+
+class TagCard extends ConsumerStatefulWidget {
   final String name;
   final bool initiallyChecked;
   final bool evenRow;
   final bool showCheckbox;
-  final ValueChanged<bool> onChecked;
+  final OnChecked onChecked;
 
   const TagCard({
     super.key,
     required this.name,
     required this.initiallyChecked,
     required this.evenRow,
-    required this.showCheckbox,
+    this.showCheckbox = true,
     required this.onChecked,
   });
 
   @override
+  ConsumerState<TagCard> createState() => _TagCardState();
+}
+
+class _TagCardState extends ConsumerState<TagCard> {
+  bool checked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    checked = widget.initiallyChecked;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final evenSelectedColor =
+        isDarkMode ? darkBackgroundColor : smallCardBackgroundColor;
+    final oddSelectedColor = isDarkMode ? darkBackgroundColor : Colors.white;
+    final side = !widget.evenRow
+        ? const BorderSide(
+            color: Colors.black,
+            width: 1.0,
+          )
+        : BorderSide.none;
     return Card(
-      color: evenRow ? Colors.white : smallCardBackgroundColor,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        child: Row(
-          children: [
-            if (showCheckbox)
-              Checkbox(
-                value: initiallyChecked,
-                onChanged: (value) => onChecked(value ?? false),
-              ),
-            Expanded(
-              child: Text(
-                name,
-                style: const TextStyle(fontSize: 16.0),
-              ),
-            ),
-          ],
-        ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0),
+        side: side,
       ),
+      color: widget.evenRow ? evenSelectedColor : oddSelectedColor,
+      child: _buildTile(),
     );
+  }
+
+  Widget _buildTile() {
+    if (widget.showCheckbox) {
+      return CheckboxListTile(
+        value: checked,
+        title: Text(
+          widget.name,
+          style: TextStyle(
+            decoration:
+                checked ? TextDecoration.lineThrough : TextDecoration.none,
+          ),
+        ),
+        onChanged: (newValue) {
+          if (newValue != null) {
+            setState(() {
+              checked = newValue;
+              widget.onChecked(newValue);
+            });
+          }
+        },
+      );
+    } else {
+      return ListTile(
+        title: Text(
+          widget.name,
+          style: TextStyle(
+            decoration:
+                checked ? TextDecoration.lineThrough : TextDecoration.none,
+          ),
+        ),
+      );
+    }
   }
 }
