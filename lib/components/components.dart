@@ -12,3 +12,4 @@ export 'bookstore_item.dart';
 export 'bookstore_landscape_card.dart';
 export 'bookstore_section.dart';
 export 'theme_button.dart';
+export 'animated_widgets.dart';

@@ -1,11 +1,11 @@
 import 'dart:async';
-
 import 'package:chopper/chopper.dart';
-import 'package:yummy/data/models/book.dart';
-import 'package:yummy/network/model_response.dart';
-import 'package:yummy/network/query_result.dart';
-import 'package:yummy/network/service_interface.dart';
-import 'package:yummy/network/google_books_converter.dart';
+
+import '../data/models/book.dart';
+import 'google_books_converter.dart';
+import 'model_response.dart';
+import 'query_result.dart';
+import 'service_interface.dart';
 
 part 'google_books_service.chopper.dart';
 
@@ -13,19 +13,22 @@ const String googleBooksUrl = 'https://www.googleapis.com/books/v1/';
 const String googleBooksApiKey = String.fromEnvironment('GOOGLE_BOOKS_API_KEY');
 
 class _AddGoogleBooksApiKeyInterceptor implements Interceptor {
+  const _AddGoogleBooksApiKeyInterceptor();
+
   @override
   FutureOr<Response<BodyType>> intercept<BodyType>(
-      Chain<BodyType> chain) async {
-    final request = chain.request;
-    if (googleBooksApiKey.isEmpty) return chain.proceed(request);
+    Chain<BodyType> chain,
+  ) {
+    if (googleBooksApiKey.isEmpty) return chain.proceed(chain.request);
 
-    final updatedRequest = request.copyWith(
+    final request = chain.request.copyWith(
       parameters: {
-        ...request.parameters,
+        ...chain.request.parameters,
         'key': googleBooksApiKey,
       },
     );
-    return chain.proceed(updatedRequest);
+
+    return chain.proceed(request);
   }
 }
 
@@ -33,13 +36,13 @@ class _AddGoogleBooksApiKeyInterceptor implements Interceptor {
 abstract class GoogleBooksService extends ChopperService
     implements ServiceInterface {
   @override
-  @Get(path: 'volumes/{id}')
+  @GET(path: 'volumes/{id}')
   Future<BookDetailsResponse> queryBook(
     @Path('id') String id,
   );
 
   @override
-  @Get(path: 'volumes')
+  @GET(path: 'volumes')
   Future<BookResponse> queryBooks(
     @Query('q') String query,
     @Query('startIndex') int offset,
@@ -51,7 +54,7 @@ abstract class GoogleBooksService extends ChopperService
       baseUrl: Uri.parse(googleBooksUrl),
       interceptors: [
         HttpLoggingInterceptor(),
-        _AddGoogleBooksApiKeyInterceptor(),
+        const _AddGoogleBooksApiKeyInterceptor(),
       ],
       converter: GoogleBooksConverter(),
       errorConverter: const JsonConverter(),

@@ -1,16 +1,18 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:yummy/network/service_interface.dart';
-import 'package:yummy/data/models/models.dart';
-import 'package:yummy/network/model_response.dart';
-import 'package:yummy/network/query_result.dart';
-import 'package:yummy/providers.dart';
-import 'package:yummy/ui/bookmarks/bookmarks.dart';
-import 'package:yummy/ui/book_card.dart';
-import 'package:yummy/ui/recipes/book_view.dart';
-import 'package:yummy/ui/theme/colors.dart';
-import 'package:yummy/ui/widgets/custom_dropdown.dart';
+
+import '../../components/components.dart';
+import '../../data/models/models.dart';
+import '../../network/model_response.dart';
+import '../../network/query_result.dart';
+import '../../network/service_interface.dart';
+import '../../providers.dart';
+import '../book_card.dart';
+import '../bookmarks/bookmarks.dart';
+import '../theme/colors.dart';
+import '../widgets/custom_dropdown.dart';
+import 'book_view.dart';
 
 enum ListType { all, bookmarks }
 
@@ -135,7 +137,6 @@ class _BookListState extends ConsumerState<BookList> {
 
   Widget buildBookList() {
     return buildScrollList([
-      _buildHeader(),
       _buildTypePicker(),
       _buildSearchCard(),
     ], _buildBookLoader(context));
@@ -143,34 +144,8 @@ class _BookListState extends ConsumerState<BookList> {
 
   Widget buildBookmarkList() {
     return buildScrollList([
-      _buildHeader(),
       _buildTypePicker(),
     ], const Bookmarks());
-  }
-
-  Widget _buildHeader() {
-    return SizedBox(
-      height: 160.0,
-      child: ClipRRect(
-        borderRadius: const BorderRadius.all(Radius.circular(8)),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Container(
-              decoration: const BoxDecoration(
-                color: lightGreen,
-              ),
-            ),
-            Image.asset(
-              'assets/images/background2.png',
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) =>
-                  const SizedBox.shrink(),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Widget buildScrollList(List<Widget> topList, Widget bottomWidget) {
@@ -193,65 +168,69 @@ class _BookListState extends ConsumerState<BookList> {
   }
 
   Widget _buildSearchCard() {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
-      child: Padding(
-        padding: const EdgeInsets.all(4.0),
-        child: Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.search),
-              onPressed: () {
-                startSearch(searchTextController.text);
-                final currentFocus = FocusScope.of(context);
-                if (!currentFocus.hasPrimaryFocus) {
-                  currentFocus.unfocus();
-                }
-              },
-            ),
-            Expanded(
-              child: TextField(
-                controller: searchTextController,
-                textInputAction: TextInputAction.done,
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  hintText: 'Search for books online...',
+    return AnimatedSlideFade(
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+        child: Padding(
+          padding: const EdgeInsets.all(4.0),
+          child: Row(
+            children: [
+              AnimatedTapScale(
+                child: IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () {
+                    startSearch(searchTextController.text);
+                    final currentFocus = FocusScope.of(context);
+                    if (!currentFocus.hasPrimaryFocus) {
+                      currentFocus.unfocus();
+                    }
+                  },
                 ),
-                onSubmitted: startSearch,
               ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () => setState(() => searchTextController.clear()),
-            ),
-            PopupMenuButton<String>(
-              icon: const Icon(
-                Icons.arrow_drop_down,
-                color: lightGrey,
+              Expanded(
+                child: TextField(
+                  controller: searchTextController,
+                  textInputAction: TextInputAction.done,
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    hintText: 'Search for books online...',
+                  ),
+                  onSubmitted: startSearch,
+                ),
               ),
-              onSelected: (String value) {
-                searchTextController.text = value;
-                startSearch(searchTextController.text);
-              },
-              itemBuilder: (BuildContext context) {
-                return previousSearches
-                    .map<CustomDropdownMenuItem<String>>((String value) {
-                  return CustomDropdownMenuItem<String>(
-                    text: value,
-                    value: value,
-                    callback: () {
-                      setState(() {
-                        previousSearches.remove(value);
-                        savePreviousSearches();
-                        Navigator.pop(context);
-                      });
-                    },
-                  );
-                }).toList();
-              },
-            ),
-          ],
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => setState(() => searchTextController.clear()),
+              ),
+              PopupMenuButton<String>(
+                icon: const Icon(
+                  Icons.arrow_drop_down,
+                  color: lightGrey,
+                ),
+                onSelected: (String value) {
+                  searchTextController.text = value;
+                  startSearch(searchTextController.text);
+                },
+                itemBuilder: (BuildContext context) {
+                  return previousSearches
+                      .map<CustomDropdownMenuItem<String>>((String value) {
+                    return CustomDropdownMenuItem<String>(
+                      text: value,
+                      value: value,
+                      callback: () {
+                        setState(() {
+                          previousSearches.remove(value);
+                          savePreviousSearches();
+                          Navigator.pop(context);
+                        });
+                      },
+                    );
+                  }).toList();
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -313,7 +292,12 @@ class _BookListState extends ConsumerState<BookList> {
         } else {
           return currentCount == 0
               ? const SliverFillRemaining(
-                  child: Center(child: CircularProgressIndicator()))
+                  child: Center(
+                    child: AnimatedBookLoader(
+                      message: 'Searching the catalog...',
+                    ),
+                  ),
+                )
               : _buildBookList(context, currentSearchList);
         }
       },
@@ -368,8 +352,7 @@ class _BookListState extends ConsumerState<BookList> {
     return message.replaceFirst('Exception: ', '');
   }
 
-  Widget _buildBookList(
-      BuildContext bookListContext, List<Book> books) {
+  Widget _buildBookList(BuildContext bookListContext, List<Book> books) {
     return SliverLayoutBuilder(
       builder: (BuildContext context, constraints) {
         final numColumns = max(1, constraints.crossAxisExtent ~/ 264);
@@ -377,14 +360,13 @@ class _BookListState extends ConsumerState<BookList> {
           delegate: SliverChildBuilderDelegate(
             childCount: books.length,
             (BuildContext context, int index) {
-              return GestureDetector(
-                onTap: () => Navigator.push(
-                    bookListContext,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          BookView(book: books[index]),
-                    )),
-                child: bookCardWidget(books[index]),
+              final book = books[index];
+              return AnimatedSlideFade(
+                delay: Duration(milliseconds: 35 * (index > 10 ? 10 : index)),
+                child: AnimatedTapScale(
+                  onTap: () => _openBook(bookListContext, book),
+                  child: bookCardWidget(book),
+                ),
               );
             },
           ),
@@ -392,6 +374,35 @@ class _BookListState extends ConsumerState<BookList> {
               crossAxisCount: numColumns.toInt(), mainAxisExtent: 264),
         );
       },
+    );
+  }
+
+  void _openBook(BuildContext context, Book book) {
+    Navigator.push(
+      context,
+      PageRouteBuilder<void>(
+        transitionDuration: const Duration(milliseconds: 420),
+        reverseTransitionDuration: const Duration(milliseconds: 280),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            BookView(book: book),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          final curvedAnimation = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+            reverseCurve: Curves.easeInCubic,
+          );
+          return FadeTransition(
+            opacity: curvedAnimation,
+            child: SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0.08, 0),
+                end: Offset.zero,
+              ).animate(curvedAnimation),
+              child: child,
+            ),
+          );
+        },
+      ),
     );
   }
 

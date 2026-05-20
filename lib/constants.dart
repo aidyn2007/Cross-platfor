@@ -17,11 +17,11 @@ enum ColorSelection {
   final Color color;
 }
 
-enum YummyTab {
+enum BooksTab {
   home(0),
   orders(1),
   account(2);
 
-  const YummyTab(this.value);
+  const BooksTab(this.value);
   final int value;
 }

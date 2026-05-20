@@ -1,5 +1,4 @@
-# Uncomment this line to define a global platform for your project
-# platform :ios, '13.0'
+platform :ios, '13.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -24,11 +23,79 @@ def flutter_root
 end
 
 require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+require 'fileutils'
 
 flutter_ios_podfile_setup
 
+def patch_grpc_template_keyword
+  %w[
+    Pods/gRPC-Core/src/core/lib/promise/detail/basic_seq.h
+    Pods/gRPC-C++/src/core/lib/promise/detail/basic_seq.h
+  ].each do |relative_path|
+    path = File.expand_path(relative_path, __dir__)
+    next unless File.exist?(path)
+
+    text = File.read(path)
+    patched = text.gsub('Traits::template CallSeqFactory', 'Traits::CallSeqFactory')
+    next if patched == text
+
+    File.chmod(0o644, path)
+    File.write(path, patched)
+  end
+end
+
+def patch_grpc_modulemap
+  modulemap_source = File.expand_path('Pods/Target Support Files/gRPC-Core/gRPC-Core.modulemap', __dir__)
+  grpc_headers = File.expand_path('Pods/gRPC-Core/include/grpc', __dir__)
+  private_headers = File.expand_path('Pods/Headers/Private/grpc', __dir__)
+
+  return unless File.exist?(modulemap_source) && Dir.exist?(grpc_headers)
+
+  FileUtils.mkdir_p(private_headers)
+  modulemap_destination = File.join(private_headers, 'gRPC-Core.modulemap')
+  unless File.exist?(modulemap_destination) && File.identical?(modulemap_source, modulemap_destination)
+    FileUtils.cp(modulemap_source, modulemap_destination)
+  end
+  FileUtils.rm_f(File.join(private_headers, 'module.modulemap'))
+
+  Dir.glob(File.join(grpc_headers, '**', '*')).each do |source|
+    next if File.directory?(source)
+    next if File.basename(source) == 'module.modulemap'
+
+    relative_path = source.delete_prefix("#{grpc_headers}/")
+    destination = File.join(private_headers, relative_path)
+    FileUtils.mkdir_p(File.dirname(destination))
+    FileUtils.ln_sf(source, destination)
+  end
+end
+
+def patch_firestore_internal_linkage
+  runner_support = File.expand_path('Pods/Target Support Files/Pods-Runner', __dir__)
+  framework_reference = 'FirebaseFirestoreInternal.framework'
+
+  Dir.glob(File.join(runner_support, 'Pods-Runner*.xcconfig')).each do |path|
+    text = File.read(path)
+    patched = text
+      .gsub(' -weak_framework "FirebaseFirestoreInternal"', '')
+      .gsub(' -weak_framework FirebaseFirestoreInternal', '')
+    File.write(path, patched) if patched != text
+  end
+
+  frameworks_script = File.join(runner_support, 'Pods-Runner-frameworks.sh')
+  if File.exist?(frameworks_script)
+    lines = File.readlines(frameworks_script)
+    patched = lines.reject { |line| line.include?(framework_reference) }
+    File.write(frameworks_script, patched.join) if patched != lines
+  end
+
+  Dir.glob(File.join(runner_support, 'Pods-Runner-frameworks-*.xcfilelist')).each do |path|
+    lines = File.readlines(path)
+    patched = lines.reject { |line| line.include?(framework_reference) }
+    File.write(path, patched.join) if patched != lines
+  end
+end
+
 target 'Runner' do
-  use_frameworks!
   use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
@@ -40,5 +107,37 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+      config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+      config.build_settings['DEFINES_MODULE'] = 'NO' if target.name == 'firebase_auth'
+
+      %w[OTHER_CFLAGS OTHER_CPLUSPLUSFLAGS GCC_PREPROCESSOR_DEFINITIONS].each do |key|
+        if config.build_settings[key].is_a?(String)
+          config.build_settings[key] = config.build_settings[key].gsub('-G', '')
+        elsif config.build_settings[key].is_a?(Array)
+          config.build_settings[key].delete('-G')
+        end
+      end
+    end
+
+    next unless target.respond_to?(:source_build_phase) && target.source_build_phase
+
+    target.source_build_phase.files.each do |file|
+      next unless file.settings && file.settings['COMPILER_FLAGS']
+
+      flags = file.settings['COMPILER_FLAGS'].split
+      flags.delete('-GCC_WARN_INHIBIT_ALL_WARNINGS')
+      file.settings['COMPILER_FLAGS'] = flags.join(' ')
+    end
   end
+
+  patch_grpc_template_keyword
+  patch_grpc_modulemap
+end
+
+post_integrate do |installer|
+  patch_grpc_modulemap
+  patch_firestore_internal_linkage
 end

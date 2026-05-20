@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'constants.dart';
-import '../components/components.dart';
-import '../models/models.dart';
-import '../screens/screens.dart';
-import 'providers.dart';
-import 'ui/library/library_page.dart';
-import 'ui/recipes/book_list.dart';
+import 'package:books/constants.dart';
+import 'package:books/components/components.dart';
+import 'package:books/models/models.dart';
+import 'package:books/screens/screens.dart';
+import 'package:books/providers.dart';
+import 'package:books/ui/library/library_page.dart';
+import 'package:books/ui/recipes/book_list.dart';
+import 'package:books/screens/chat_page.dart';
 
 class Home extends ConsumerStatefulWidget {
   const Home({
@@ -82,13 +83,10 @@ class _HomeState extends ConsumerState<Home> {
       const LibraryPage(),
       MyOrdersPage(orderManager: widget.ordersManager),
       AccountPage(
-          onLogOut: (logout) {
-            ref.read(userDaoProvider).logout();
-          },
           user: User(
-              firstName: ref.read(userDaoProvider).email() ?? 'Reader',
+              firstName: ref.watch(userDaoProvider).email() ?? 'Reader',
               lastName: '',
-              role: 'Bookstore member',
+              role: 'Books Enthusiast',
               profileImageUrl: 'assets/profile_pics/person_stef.jpeg',
               points: 100,
               darkMode: true)),
@@ -122,7 +120,32 @@ class _HomeState extends ConsumerState<Home> {
             ),
           ],
         ),
-        body: IndexedStack(index: widget.tab, children: pages),
+        body: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 360),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          transitionBuilder: (child, animation) {
+            final curvedAnimation = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+            );
+            return FadeTransition(
+              opacity: curvedAnimation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0.04, 0),
+                  end: Offset.zero,
+                ).animate(curvedAnimation),
+                child: child,
+              ),
+            );
+          },
+          child: IndexedStack(
+            key: ValueKey<int>(widget.tab),
+            index: widget.tab,
+            children: pages,
+          ),
+        ),
         bottomNavigationBar: NavigationBar(
           selectedIndex: widget.tab,
           onDestinationSelected: (index) {

@@ -1,154 +1,257 @@
 import 'dart:async';
-import 'dart:core';
+import 'dart:developer';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/models.dart';
 import 'repository.dart';
 
-class MemoryRepository extends Notifier<CurrentBookData>
-    implements Repository {
+class MemoryRepository extends Notifier<CurrentBookData> implements Repository {
   late Stream<List<Book>> _bookStream;
   late Stream<List<BookTag>> _tagStream;
-  final StreamController _bookStreamController =
+  StreamSubscription<User?>? _authSubscription;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      _favoriteBooksSubscription;
+
+  final Map<String, Book> _localFavoriteBooks = <String, Book>{};
+  final Set<String> _deletedFavoriteBookIds = <String>{};
+  List<Book> _remoteFavoriteBooks = <Book>[];
+  String? _currentUserId;
+
+  late final FirebaseAuth _auth;
+  late final FirebaseFirestore _firestore;
+
+  final StreamController<List<Book>> _bookStreamController =
       StreamController<List<Book>>();
-  final StreamController _tagStreamController =
+  final StreamController<List<BookTag>> _tagStreamController =
       StreamController<List<BookTag>>();
 
   MemoryRepository() {
     _bookStream = _bookStreamController.stream.asBroadcastStream(
       onListen: (subscription) {
-        _bookStreamController.sink.add(state.currentBooks);
+        _emitBooks();
       },
-    ) as Stream<List<Book>>;
+    );
     _tagStream = _tagStreamController.stream.asBroadcastStream(
       onListen: (subscription) {
         _tagStreamController.sink.add(state.currentTags);
       },
-    ) as Stream<List<BookTag>>;
+    );
   }
 
   @override
   CurrentBookData build() {
+    // Инициализируем здесь
+    _auth = FirebaseAuth.instance;
+    _firestore = FirebaseFirestore.instance;
+
+    _authSubscription = _auth.authStateChanges().listen(_listenToRemoteBooks);
+    Future.microtask(() => _listenToRemoteBooks(_auth.currentUser));
+    ref.onDispose(() {
+      _authSubscription?.cancel();
+      _favoriteBooksSubscription?.cancel();
+      close();
+    });
     return const CurrentBookData();
   }
 
   @override
-  Stream<List<Book>> watchAllBooks() {
-    return _bookStream;
+  Stream<List<Book>> watchAllBooks() => _bookStream;
+
+  @override
+  Stream<List<BookTag>> watchAllTags() => _tagStream;
+
+  @override
+  Future<List<Book>> findAllBooks() => Future.value(state.currentBooks);
+
+  @override
+  Future<Book> findBookById(int id) =>
+      Future.value(state.currentBooks.firstWhere((book) => book.id == id));
+
+  @override
+  Future<List<BookTag>> findAllTags() => Future.value(state.currentTags);
+
+  @override
+  Future<List<BookTag>> findBookTags(int bookId) async {
+    return state.currentTags.where((tag) => tag.bookId == bookId).toList();
   }
 
   @override
-  Stream<List<BookTag>> watchAllTags() {
-    return _tagStream;
-  }
+  Future<int> insertBook(Book book) async {
+    final savedBook = book.copyWith(bookmarked: true);
+    final bookId = _favoriteBookId(savedBook);
+    final alreadySaved = state.currentBooks.any(
+      (currentBook) => _favoriteBookId(currentBook) == bookId,
+    );
 
-  @override
-  Future<List<Book>> findAllBooks() {
-    return Future.value(state.currentBooks);
-  }
+    if (alreadySaved) return 0;
 
-  @override
-  Future<Book> findBookById(int id) {
-    return Future.value(
-        state.currentBooks.firstWhere((book) => book.id == id));
-  }
+    _deletedFavoriteBookIds.remove(bookId);
+    _localFavoriteBooks[bookId] = savedBook;
+    _publishBooks();
 
-  @override
-  Future<List<BookTag>> findAllTags() {
-    return Future.value(state.currentTags);
-  }
-
-  @override
-  Future<List<BookTag>> findBookTags(int bookId) {
-    final book =
-        state.currentBooks.firstWhere((book) => book.id == bookId);
-    final bookTags = state.currentTags
-        .where((tag) => tag.bookId == book.id)
+    final tags = savedBook.tags
+        .map((tag) => tag.copyWith(bookId: savedBook.id))
         .toList();
-    return Future.value(bookTags);
-  }
-
-  @override
-  Future<int> insertBook(Book book) {
-    final alreadySaved = state.currentBooks.any((currentBook) {
-      final sameSourceId =
-          book.sourceId != null && currentBook.sourceId == book.sourceId;
-      final sameLocalId = book.id != null && currentBook.id == book.id;
-
-      return sameSourceId || sameLocalId;
-    });
-
-    if (alreadySaved) {
-      return Future.value(0);
-    }
-    state = state.copyWith(currentBooks: [...state.currentBooks, book]);
-    _bookStreamController.sink.add(state.currentBooks);
-    final tags = <BookTag>[];
-    for (final tag in book.tags) {
-      tags.add(tag.copyWith(bookId: book.id));
-    }
     insertTags(tags);
-    return Future.value(0);
+    unawaited(_saveFavoriteBook(savedBook));
+    return 0;
   }
 
   @override
-  Future<List<int>> insertTags(List<BookTag> tags) {
+  Future<List<int>> insertTags(List<BookTag> tags) async {
     if (tags.isNotEmpty) {
-      state = state.copyWith(
-          currentTags: [...state.currentTags, ...tags]);
-
+      state = state.copyWith(currentTags: [...state.currentTags, ...tags]);
       _tagStreamController.sink.add(state.currentTags);
     }
-    return Future.value(<int>[]);
+    return <int>[];
   }
 
   @override
-  Future<void> deleteBook(Book book) {
-    final updatedList = [...state.currentBooks];
-    updatedList.remove(book);
-    state = state.copyWith(currentBooks: updatedList);
-    _bookStreamController.sink.add(state.currentBooks);
-    if (book.id != null) {
-      deleteBookTags(book.id!);
-    }
-    return Future.value();
+  Future<void> deleteBook(Book book) async {
+    final bookId = _favoriteBookId(book);
+    _deletedFavoriteBookIds.add(bookId);
+    _localFavoriteBooks.remove(bookId);
+    _remoteFavoriteBooks.removeWhere(
+      (currentBook) => _favoriteBookId(currentBook) == bookId,
+    );
+    _publishBooks();
+
+    unawaited(_deleteFavoriteBook(book));
+    if (book.id != null) deleteBookTags(book.id!);
   }
 
   @override
-  Future<void> deleteTag(BookTag tag) {
-    final updatedList = [...state.currentTags];
-    updatedList.remove(tag);
-    state = state.copyWith(currentTags: updatedList);
-
-    _tagStreamController.sink.add(state.currentTags);
-    return Future.value();
-  }
-
-  @override
-  Future<void> deleteTags(List<BookTag> tags) {
-    final updatedList = [...state.currentTags];
-    updatedList.removeWhere((tag) => tags.contains(tag));
+  Future<void> deleteTag(BookTag tag) async {
+    final updatedList = [...state.currentTags]..remove(tag);
     state = state.copyWith(currentTags: updatedList);
     _tagStreamController.sink.add(state.currentTags);
-    return Future.value();
   }
 
   @override
-  Future<void> deleteBookTags(int bookId) {
-    final updatedList = [...state.currentTags];
-    updatedList.removeWhere((tag) => tag.bookId == bookId);
+  Future<void> deleteTags(List<BookTag> tags) async {
+    final updatedList = [...state.currentTags]
+      ..removeWhere((tag) => tags.contains(tag));
     state = state.copyWith(currentTags: updatedList);
     _tagStreamController.sink.add(state.currentTags);
-    return Future.value();
   }
 
   @override
-  Future init() {
-    return Future.value();
+  Future<void> deleteBookTags(int bookId) async {
+    final updatedList = [...state.currentTags]
+      ..removeWhere((tag) => tag.bookId == bookId);
+    state = state.copyWith(currentTags: updatedList);
+    _tagStreamController.sink.add(state.currentTags);
   }
+
+  @override
+  Future init() async {}
 
   @override
   void close() {
-    _bookStreamController.close();
-    _tagStreamController.close();
+    if (!_bookStreamController.isClosed) _bookStreamController.close();
+    if (!_tagStreamController.isClosed) _tagStreamController.close();
+  }
+
+  void _listenToRemoteBooks(User? user) {
+    _favoriteBooksSubscription?.cancel();
+    if (user == null) {
+      _currentUserId = null;
+      _localFavoriteBooks.clear();
+      _remoteFavoriteBooks = <Book>[];
+      _deletedFavoriteBookIds.clear();
+      _publishBooks();
+      return;
+    }
+
+    if (_currentUserId != user.uid) {
+      _currentUserId = user.uid;
+      _localFavoriteBooks.clear();
+      _remoteFavoriteBooks = <Book>[];
+      _deletedFavoriteBookIds.clear();
+      _publishBooks();
+    }
+
+    _favoriteBooksSubscription = _favoriteBooksCollection(user.uid)
+        .orderBy('savedAt', descending: true)
+        .snapshots()
+        .listen((snapshot) {
+      _remoteFavoriteBooks = snapshot.docs
+          .map((document) => Book.fromJson(document.data()))
+          .map((book) => book.copyWith(bookmarked: true))
+          .toList();
+
+      final remoteBookIds = _remoteFavoriteBooks.map(_favoriteBookId).toSet();
+      _localFavoriteBooks.removeWhere(
+        (bookId, book) => remoteBookIds.contains(bookId),
+      );
+      _deletedFavoriteBookIds.removeWhere(
+        (bookId) => !remoteBookIds.contains(bookId),
+      );
+      _publishBooks();
+    }, onError: (error) => log('Error loading books: $error'));
+  }
+
+  CollectionReference<Map<String, dynamic>> _favoriteBooksCollection(
+    String userId,
+  ) {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('favorite_books');
+  }
+
+  Future<void> _saveFavoriteBook(Book book) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+      await _favoriteBooksCollection(user.uid).doc(_favoriteBookId(book)).set({
+        ...book.toJson(),
+        'savedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (_) {}
+  }
+
+  Future<void> _deleteFavoriteBook(Book book) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+      await _favoriteBooksCollection(user.uid)
+          .doc(_favoriteBookId(book))
+          .delete();
+    } catch (_) {}
+  }
+
+  void _publishBooks() {
+    final booksById = <String, Book>{};
+
+    for (final book in _remoteFavoriteBooks) {
+      final bookId = _favoriteBookId(book);
+      if (!_deletedFavoriteBookIds.contains(bookId)) {
+        booksById[bookId] = book.copyWith(bookmarked: true);
+      }
+    }
+
+    for (final book in _localFavoriteBooks.values) {
+      final bookId = _favoriteBookId(book);
+      if (!_deletedFavoriteBookIds.contains(bookId)) {
+        booksById[bookId] = book.copyWith(bookmarked: true);
+      }
+    }
+
+    state = state.copyWith(currentBooks: booksById.values.toList());
+    _emitBooks();
+  }
+
+  void _emitBooks() {
+    if (!_bookStreamController.isClosed) {
+      _bookStreamController.sink.add(state.currentBooks);
+    }
+  }
+
+  String _favoriteBookId(Book book) {
+    final rawId = book.sourceId ?? book.id?.toString() ?? book.label;
+    return (rawId ?? DateTime.now().microsecondsSinceEpoch.toString())
+        .replaceAll('/', '_');
   }
 }

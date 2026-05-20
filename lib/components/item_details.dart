@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/models.dart';
+import 'animated_widgets.dart';
 import 'cart_control.dart';
 
 class ItemDetails extends StatefulWidget {
@@ -26,57 +27,62 @@ class _ItemDetailsState extends State<ItemDetails> {
 
     return Container(
       padding: const EdgeInsets.all(24.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: colorScheme.outlineVariant,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.item.name,
-                      style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '\$${widget.item.price.toStringAsFixed(2)}',
-                      style: textTheme.titleLarge?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+      child: AnimatedSlideFade(
+        beginOffset: const Offset(0, 0.12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colorScheme.outlineVariant,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              _mostLikedBadge(colorScheme),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            widget.item.description,
-            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: 24),
-          _itemImage(widget.item.imageUrl, colorScheme),
-          const SizedBox(height: 24),
-          _addToCartControl(widget.item),
-          const SizedBox(height: 16),
-        ],
+            ),
+            const SizedBox(height: 24),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.item.name,
+                        style: textTheme.headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '\$${widget.item.price.toStringAsFixed(2)}',
+                        style: textTheme.titleLarge?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                _mostLikedBadge(colorScheme),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              widget.item.description,
+              style: textTheme.bodyMedium
+                  ?.copyWith(color: colorScheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 24),
+            _itemImage(widget.item.imageUrl, colorScheme),
+            const SizedBox(height: 24),
+            _addToCartControl(widget.item),
+            const SizedBox(height: 16),
+          ],
+        ),
       ),
     );
   }
@@ -91,7 +97,11 @@ class _ItemDetailsState extends State<ItemDetails> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.thumb_up, size: 14, color: colorScheme.onPrimaryContainer),
+          Icon(
+            Icons.thumb_up,
+            size: 14,
+            color: colorScheme.onPrimaryContainer,
+          ),
           const SizedBox(width: 4),
           Text(
             'Popular',
@@ -114,6 +124,20 @@ class _ItemDetailsState extends State<ItemDetails> {
         height: 220,
         width: double.infinity,
         fit: BoxFit.cover,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            height: 220,
+            width: double.infinity,
+            color: colorScheme.surfaceVariant,
+            child: const Center(
+              child: AnimatedBookLoader(
+                message: 'Loading cover...',
+                size: 96,
+              ),
+            ),
+          );
+        },
         errorBuilder: (context, error, stackTrace) {
           return Container(
             height: 220,
@@ -132,18 +156,24 @@ class _ItemDetailsState extends State<ItemDetails> {
         const uuid = Uuid();
         final uniqueId = uuid.v4();
         final cartItem = CartItem(
-            id: uniqueId, name: item.name, price: item.price, quantity: number);
+          id: uniqueId,
+          name: item.name,
+          price: item.price,
+          quantity: number,
+        );
         setState(() {
           widget.cartManager.addItem(cartItem);
           widget.quantityUpdated();
         });
         Navigator.pop(context);
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${item.name} added to cart'),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
             action: SnackBarAction(
               label: 'Undo',
               onPressed: () {

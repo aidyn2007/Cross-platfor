@@ -1,4 +1,4 @@
-import 'package:yummy/data/models/models.dart';
+import 'package:books/data/models/models.dart';
 
 class GoogleBooksResults {
   final List<GoogleBook>? items;
@@ -6,8 +6,7 @@ class GoogleBooksResults {
 
   GoogleBooksResults({this.items, required this.totalItems});
 
-  factory GoogleBooksResults.fromJson(Map<String, dynamic> json) =>
-      GoogleBooksResults(
+  factory GoogleBooksResults.fromJson(Map<String, dynamic> json) => GoogleBooksResults(
         items: (json['items'] as List<dynamic>?)
             ?.map((e) => GoogleBook.fromJson(e as Map<String, dynamic>))
             .toList(),
@@ -23,8 +22,7 @@ class GoogleBook {
 
   factory GoogleBook.fromJson(Map<String, dynamic> json) => GoogleBook(
         id: json['id'] as String,
-        volumeInfo:
-            VolumeInfo.fromJson(json['volumeInfo'] as Map<String, dynamic>),
+        volumeInfo: VolumeInfo.fromJson(json['volumeInfo'] as Map<String, dynamic>),
       );
 }
 

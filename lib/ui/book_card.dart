@@ -1,8 +1,8 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
+import '../components/animated_widgets.dart';
 import '../data/models/book.dart';
 import 'theme/colors.dart';
 import 'widgets/common.dart';
@@ -37,7 +37,10 @@ Widget bookCardWidget(Book book) {
                     ),
                   ),
                 ),
-                const Icon(Icons.arrow_circle_right_outlined, color: Colors.grey),
+                const Icon(
+                  Icons.arrow_circle_right_outlined,
+                  color: Colors.grey,
+                ),
                 const SizedBox(width: 20.0),
               ],
             ),
@@ -50,17 +53,26 @@ Widget bookCardWidget(Book book) {
             ),
             child: Hero(
               tag: 'book-${book.id}',
-                child: CachedNetworkImage(
-                  imageUrl: book.image ?? '',
+              child: CachedNetworkImage(
+                imageUrl: book.image ?? '',
+                height: 160,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => const SizedBox(
                   height: 160,
-                  fit: BoxFit.cover,
-                  errorWidget: (context, url, error) => Container(
-                    height: 160,
-                    color: Colors.grey[200],
-                    child: const Icon(Icons.book),
+                  child: Center(
+                    child: AnimatedBookLoader(
+                      message: 'Loading cover...',
+                      size: 92,
+                    ),
                   ),
                 ),
+                errorWidget: (context, url, error) => Container(
+                  height: 160,
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.book),
+                ),
               ),
+            ),
           ),
         ],
       ),

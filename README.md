@@ -1,16 +1,38 @@
-# Yummy
+# Books App - Midterm Project
 
-A new Flutter project.
+Приложение для управления личной библиотекой книг с системой лояльности и управлением профилем.
 
-## Getting Started
+## Реализованные функции
 
-This project is a starting point for a Flutter application.
+1.  **Система баллов (Loyalty Points):**
+    *   При добавлении любой книги в "Library List" пользователю начисляется **+100 баллов**.
+    *   Текущее количество баллов отображается в разделе **Account**.
+    *   Баллы рассчитываются динамически на основе количества сохраненных книг.
 
-A few resources to get you started if this is your first Flutter project:
+2.  **Управление профилем (Personal Information):**
+    *   В разделе **Account** доступна кнопка "Personal Information".
+    *   Пользователь может изменить свое **Имя** и **Фамилию**.
+    *   Данные сохраняются локально и сразу обновляются в заголовке профиля.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Тестирование
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Для проверки корректности работы этих функций написаны интеграционные тесты в файле `test/features_test.dart`.
+
+### Что проверяют тесты:
+*   **Тест начисления баллов:** Проверяет, что при нажатии "Add to Library" счетчик баллов в аккаунте увеличивается соразмерно количеству книг (1 книга = 100 очков).
+*   **Тест навигации:** Проверяет корректный переход из настроек аккаунта на страницу редактирования профиля.
+*   **Тест обновления данных:** Проверяет, что после ввода нового имени и нажатия кнопки "Save", данные успешно обновляются на главной странице аккаунта.
+
+### Как запустить тесты:
+
+Откройте терминал в корне проекта и выполните команду:
+
+```sh
+flutter test test/features_test.dart
+```
+
+## Технологический стек
+*   **State Management:** Flutter Riverpod
+*   **Navigation:** GoRouter
+*   **Local Storage:** SharedPreferences
+*   **Testing:** flutter_test

@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../components/components.dart';
+import '../constants.dart';
 import '../providers.dart';
 
 class LoginPage extends ConsumerWidget {
-  const LoginPage({super.key});
+  final bool isRegister;
+
+  const LoginPage({
+    super.key,
+    this.isRegister = false,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,11 +41,14 @@ class LoginPage extends ConsumerWidget {
                         child: Padding(
                           padding: const EdgeInsets.all(32.0),
                           child: Center(
-                            child: Hero(
-                              tag: 'login-logo',
-                              child: Image.asset(
-                                'assets/yummy_logo.png',
-                                fit: BoxFit.contain,
+                            child: AnimatedSlideFade(
+                              beginOffset: const Offset(-0.08, 0),
+                              child: Hero(
+                                tag: 'login-logo',
+                                child: Image.asset(
+                                  'assets/yummy_logo.png',
+                                  fit: BoxFit.contain,
+                                ),
                               ),
                             ),
                           ),
@@ -45,15 +56,19 @@ class LoginPage extends ConsumerWidget {
                       ),
                       Expanded(
                         child: Center(
-                          child: Card(
-                            margin: const EdgeInsets.all(32.0),
-                            elevation: 8,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            child: const Padding(
-                              padding: EdgeInsets.all(32.0),
-                              child: LoginForm(),
+                          child: AnimatedSlideFade(
+                            delay: const Duration(milliseconds: 120),
+                            beginOffset: const Offset(0.08, 0),
+                            child: Card(
+                              margin: const EdgeInsets.all(32.0),
+                              elevation: 8,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(32.0),
+                                child: LoginForm(isRegister: isRegister),
+                              ),
                             ),
                           ),
                         ),
@@ -67,22 +82,27 @@ class LoginPage extends ConsumerWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Hero(
-                            tag: 'login-logo',
-                            child: Image.asset(
-                              'assets/yummy_logo.png',
-                              height: 120,
+                          AnimatedSlideFade(
+                            child: Hero(
+                              tag: 'login-logo',
+                              child: Image.asset(
+                                'assets/yummy_logo.png',
+                                height: 120,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 40),
-                          Card(
-                            elevation: 4,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            child: const Padding(
-                              padding: EdgeInsets.all(24.0),
-                              child: LoginForm(),
+                          AnimatedSlideFade(
+                            delay: const Duration(milliseconds: 120),
+                            child: Card(
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(24.0),
+                                child: LoginForm(isRegister: isRegister),
+                              ),
                             ),
                           ),
                         ],
@@ -100,7 +120,12 @@ class LoginPage extends ConsumerWidget {
 }
 
 class LoginForm extends ConsumerStatefulWidget {
-  const LoginForm({super.key});
+  final bool isRegister;
+
+  const LoginForm({
+    super.key,
+    this.isRegister = false,
+  });
 
   @override
   ConsumerState<LoginForm> createState() => _LoginFormState();
@@ -156,7 +181,9 @@ class _LoginFormState extends ConsumerState<LoginForm> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(error)),
       );
+      return;
     }
+    context.go('/${BooksTab.home.value}');
   }
 
   @override
@@ -170,7 +197,7 @@ class _LoginFormState extends ConsumerState<LoginForm> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Welcome',
+            widget.isRegister ? 'Create Account' : 'Welcome',
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onSurface,
@@ -179,7 +206,9 @@ class _LoginFormState extends ConsumerState<LoginForm> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Sign in or create an account to continue',
+            widget.isRegister
+                ? 'Register to save books and use chat'
+                : 'Sign in to continue',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -213,9 +242,8 @@ class _LoginFormState extends ConsumerState<LoginForm> {
               labelText: 'Password',
               prefixIcon: const Icon(Icons.lock_outline),
               suffixIcon: IconButton(
-                icon: Icon(_obscurePassword
-                    ? Icons.visibility_off
-                    : Icons.visibility),
+                icon: Icon(
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility),
                 onPressed: () =>
                     setState(() => _obscurePassword = !_obscurePassword),
               ),
@@ -227,42 +255,67 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             ),
           ),
           const SizedBox(height: 24),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+          AnimatedTapScale(
+            enabled: !_submitting,
+            child: FilledButton(
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: _submitting
+                  ? null
+                  : () => _submit(isSignUp: widget.isRegister),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: ScaleTransition(scale: animation, child: child),
+                  );
+                },
+                child: _submitting
+                    ? const SizedBox(
+                        key: ValueKey('login-loading'),
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(
+                        widget.isRegister ? 'Create Account' : 'Login',
+                        key: const ValueKey('login-label'),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ),
-            onPressed: _submitting ? null : () => _submit(isSignUp: false),
-            child: _submitting
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text(
-                    'Login',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
           ),
           const SizedBox(height: 12),
-          OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+          AnimatedTapScale(
+            enabled: !_submitting,
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
-            ),
-            onPressed: _submitting ? null : () => _submit(isSignUp: true),
-            child: const Text(
-              'Sign Up',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+              onPressed: _submitting
+                  ? null
+                  : () {
+                      context.go(widget.isRegister ? '/login' : '/register');
+                    },
+              child: Text(
+                widget.isRegister
+                    ? 'Already have an account? Login'
+                    : 'Create an account',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),

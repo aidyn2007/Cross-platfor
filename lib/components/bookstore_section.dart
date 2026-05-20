@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../components/components.dart';
-import '../models/models.dart';
 import '../constants.dart';
+import '../models/models.dart';
+import 'animated_widgets.dart';
+import 'bookstore_landscape_card.dart';
 
 class BookstoreSection extends StatelessWidget {
   final List<Bookstore> bookstores;
@@ -35,14 +36,20 @@ class BookstoreSection extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               itemCount: bookstores.length,
               itemBuilder: (context, index) {
-                return SizedBox(
+                return AnimatedSlideFade(
+                  delay: Duration(milliseconds: 70 * (index > 6 ? 6 : index)),
+                  beginOffset: const Offset(0.12, 0),
+                  child: SizedBox(
                     width: 300,
                     child: BookstoreLandscapeCard(
                       bookstore: bookstores[index],
                       onTap: () {
-                        context.go('/${YummyTab.home.value}/bookstore/${bookstores[index].id}');
+                        context.go(
+                            '/${BooksTab.home.value}/bookstore/${bookstores[index].id}');
                       },
-                    ));
+                    ),
+                  ),
+                );
               },
             ),
           ),

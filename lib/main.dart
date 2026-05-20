@@ -6,11 +6,11 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'constants.dart';
 import 'firebase_options.dart';
-import 'screens/screens.dart';
-import 'models/models.dart';
 import 'home.dart';
-import 'providers.dart';
+import 'models/models.dart';
 import 'network/google_books_service.dart';
+import 'providers.dart';
+import 'screens/screens.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,7 +28,7 @@ Future<void> main() async {
         sharedPrefProvider.overrideWithValue(sharedPrefs),
         serviceProvider.overrideWithValue(service),
       ],
-      child: const Yummy(),
+      child: const BooksApp(),
     ),
   );
 }
@@ -42,14 +42,14 @@ class CustomScrollBehavior extends MaterialScrollBehavior {
       };
 }
 
-class Yummy extends ConsumerStatefulWidget {
-  const Yummy({super.key});
+class BooksApp extends ConsumerStatefulWidget {
+  const BooksApp({super.key});
 
   @override
-  ConsumerState<Yummy> createState() => _YummyState();
+  ConsumerState<BooksApp> createState() => _BooksAppState();
 }
 
-class _YummyState extends ConsumerState<Yummy> {
+class _BooksAppState extends ConsumerState<BooksApp> {
   ThemeMode themeMode = ThemeMode.light;
   ColorSelection colorSelected = ColorSelection.deepPurple;
 
@@ -70,48 +70,108 @@ class _YummyState extends ConsumerState<Yummy> {
       routes: [
         GoRoute(
           path: '/login',
-          builder: (context, state) => const LoginPage(),
+          pageBuilder: (context, state) => _buildPage(
+            state,
+            const LoginPage(),
+            beginOffset: const Offset(0, 0.04),
+          ),
+        ),
+        GoRoute(
+          path: '/register',
+          pageBuilder: (context, state) => _buildPage(
+            state,
+            const LoginPage(isRegister: true),
+            beginOffset: const Offset(0, 0.04),
+          ),
         ),
         GoRoute(
             path: '/:tab',
-            builder: (context, state) {
-              return Home(
-                cartManager: _cartManager,
-                ordersManager: _orderManager,
-                changeTheme: changeThemeMode,
-                changeColor: changeColor,
-                colorSelected: colorSelected,
-                tab: int.tryParse(state.pathParameters['tab'] ?? '') ?? 0,
-                initialBookSearchQuery: state.uri.queryParameters['search'],
+            pageBuilder: (context, state) {
+              final tabIndex =
+                  int.tryParse(state.pathParameters['tab'] ?? '') ?? 0;
+              return _buildPage(
+                state,
+                Home(
+                  cartManager: _cartManager,
+                  ordersManager: _orderManager,
+                  changeTheme: changeThemeMode,
+                  changeColor: changeColor,
+                  colorSelected: colorSelected,
+                  tab: tabIndex,
+                  initialBookSearchQuery: state.uri.queryParameters['search'],
+                ),
               );
             },
             routes: [
               GoRoute(
                   path: 'bookstore/:id',
-                  builder: (context, state) {
+                  pageBuilder: (context, state) {
                     final id =
                         int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
                     final bookstore = bookstores[id];
-                    return BookstorePage(
-                      bookstore: bookstore,
-                      cartManager: _cartManager,
-                      ordersManager: _orderManager,
+                    return _buildPage(
+                      state,
+                      BookstorePage(
+                        bookstore: bookstore,
+                        cartManager: _cartManager,
+                        ordersManager: _orderManager,
+                      ),
+                      beginOffset: const Offset(0.08, 0),
                     );
                   }),
+              GoRoute(
+                path: 'personal-info',
+                pageBuilder: (context, state) => _buildPage(
+                  state,
+                  const PersonalInfoPage(),
+                  beginOffset: const Offset(0.08, 0),
+                ),
+              ),
             ]),
       ],
     );
   }
 
+  CustomTransitionPage<void> _buildPage(
+    GoRouterState state,
+    Widget child, {
+    Offset beginOffset = const Offset(0.06, 0),
+  }) {
+    return CustomTransitionPage<void>(
+      key: state.pageKey,
+      child: child,
+      transitionDuration: const Duration(milliseconds: 420),
+      reverseTransitionDuration: const Duration(milliseconds: 280),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        final curvedAnimation = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        return FadeTransition(
+          opacity: curvedAnimation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: beginOffset,
+              end: Offset.zero,
+            ).animate(curvedAnimation),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+
   String? _appRedirect(BuildContext context, GoRouterState state) {
     final loggedIn = _userDao.isLoggedIn();
-    final isOnLoginPage = state.matchedLocation == '/login';
+    final isOnAuthPage = state.matchedLocation == '/login' ||
+        state.matchedLocation == '/register';
 
     if (!loggedIn) {
-      return isOnLoginPage ? null : '/login';
+      return isOnAuthPage ? null : '/login';
     }
-    if (isOnLoginPage) {
-      return '/${YummyTab.home.value}';
+    if (isOnAuthPage) {
+      return '/${BooksTab.home.value}';
     }
     return null;
   }
@@ -148,6 +208,7 @@ class _YummyState extends ConsumerState<Yummy> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
+      title: 'Books',
       debugShowCheckedModeBanner: false,
       routerConfig: _router,
       scrollBehavior: CustomScrollBehavior(),

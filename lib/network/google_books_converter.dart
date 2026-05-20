@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:chopper/chopper.dart';
-import 'package:yummy/network/query_result.dart';
-import 'package:yummy/network/model_response.dart';
-import 'package:yummy/network/google_books_model.dart';
+import 'package:books/network/query_result.dart';
+import 'package:books/network/model_response.dart';
+import 'package:books/network/google_books_model.dart';
 
 class GoogleBooksConverter implements Converter {
   @override

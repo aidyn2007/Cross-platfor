@@ -6,13 +6,14 @@ import 'package:flutter/material.dart';
 // 1
 class UserDao extends ChangeNotifier {
   String errorMsg = 'An error has occurred.';
+  bool _signedOutLocally = false;
 
   // 2
   final auth = FirebaseAuth.instance;
 
   // 1
   bool isLoggedIn() {
-    return auth.currentUser != null;
+    return !_signedOutLocally && auth.currentUser != null;
   }
 
   // 2
@@ -33,6 +34,7 @@ class UserDao extends ChangeNotifier {
         email: email,
         password: password,
       );
+      _signedOutLocally = false;
       // 3
       notifyListeners();
       return null;
@@ -63,6 +65,7 @@ class UserDao extends ChangeNotifier {
         email: email,
         password: password,
       );
+      _signedOutLocally = false;
       // 3
       notifyListeners();
       return null;
@@ -89,8 +92,18 @@ class UserDao extends ChangeNotifier {
     }
   }
 
-  void logout() async {
-    await auth.signOut();
-    notifyListeners();
+  Future<void> logout() async {
+    try {
+      await auth.signOut();
+      _signedOutLocally = true;
+      notifyListeners();
+    } on FirebaseAuthException catch (e) {
+      if (e.code != 'keychain-error') {
+        rethrow;
+      }
+
+      _signedOutLocally = true;
+      notifyListeners();
+    }
   }
 }

@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:books/components/components.dart';
 import '../../providers.dart';
 import '../../data/models/book.dart';
 import '../../network/model_response.dart';
@@ -67,7 +68,9 @@ class _BookViewState extends ConsumerState<BookView> {
               children: <Widget>[
                 topImage(context),
                 sizedW16,
-                Container(
+                AnimatedSlideFade(
+                  delay: const Duration(milliseconds: 120),
+                  child: Container(
                     constraints: const BoxConstraints(maxWidth: 500),
                     child: Column(
                       children: [
@@ -75,7 +78,9 @@ class _BookViewState extends ConsumerState<BookView> {
                         description(),
                         sizedW16,
                       ],
-                    )),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -129,7 +134,10 @@ class _BookViewState extends ConsumerState<BookView> {
       imageUrl: image,
       alignment: Alignment.topCenter,
       fit: BoxFit.contain,
-      placeholder: (context, url) => const CircularProgressIndicator(),
+      placeholder: (context, url) => const AnimatedBookLoader(
+        message: 'Loading cover...',
+        size: 96,
+      ),
       height: 150,
       width: 200,
     );
@@ -159,15 +167,19 @@ class _BookViewState extends ConsumerState<BookView> {
                 color: titleRowColor,
               ),
               onPressed: () {
+                final selectedBook = (bookDetail ?? widget.book).copyWith(
+                  bookmarked: true,
+                );
                 if (!bookmarked) {
-                  if (bookDetail != null) {
-                    repository
-                        .insertBook(bookDetail!.copyWith(bookmarked: true));
-                  }
+                  repository.insertBook(selectedBook);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                          '${selectedBook.label ?? 'Book'} added to library'),
+                    ),
+                  );
                 } else {
-                  if (bookDetail != null) {
-                    repository.deleteBook(bookDetail!);
-                  }
+                  repository.deleteBook(selectedBook);
                 }
                 Navigator.pop(context);
               },
@@ -182,7 +194,19 @@ class _BookViewState extends ConsumerState<BookView> {
   Widget description() {
     return Padding(
       padding: const EdgeInsets.only(left: 16.0, top: 24.0, right: 16.0),
-      child: Html(data: bookDetail?.description ?? 'Loading description...'),
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 260),
+        child: bookDetail?.description == null
+            ? const AnimatedBookLoader(
+                key: ValueKey('description-loading'),
+                message: 'Loading description...',
+                size: 96,
+              )
+            : Html(
+                key: const ValueKey('description-loaded'),
+                data: bookDetail!.description!,
+              ),
+      ),
     );
   }
 }

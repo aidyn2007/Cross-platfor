@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'animated_widgets.dart';
 import '../models/models.dart';
 
 class BookstoreItem extends StatelessWidget {
@@ -48,11 +49,17 @@ class BookstoreItem extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Icon(Icons.thumb_up_outlined, size: 14, color: colorScheme.secondary),
+                    Icon(
+                      Icons.thumb_up_outlined,
+                      size: 14,
+                      color: colorScheme.secondary,
+                    ),
                     const SizedBox(width: 2),
                     Text(
                       '95%',
-                      style: textTheme.labelSmall?.copyWith(color: colorScheme.secondary),
+                      style: textTheme.labelSmall?.copyWith(
+                        color: colorScheme.secondary,
+                      ),
                     ),
                   ],
                 ),
@@ -70,6 +77,20 @@ class BookstoreItem extends StatelessWidget {
                   width: 90,
                   height: 90,
                   fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      width: 90,
+                      height: 90,
+                      color: colorScheme.surfaceVariant,
+                      child: const Center(
+                        child: AnimatedBookLoader(
+                          message: '',
+                          size: 64,
+                        ),
+                      ),
+                    );
+                  },
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
                       width: 90,
@@ -95,16 +116,15 @@ class BookstoreItem extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: IconButton(
-                    icon: Icon(Icons.add, size: 20, color: colorScheme.onPrimaryContainer),
-                    onPressed: () {
-                      // Handled by parent InkWell or add specific logic
-                    },
-                    constraints: const BoxConstraints(
-                      minWidth: 32,
-                      minHeight: 32,
+                  child: AnimatedTapScale(
+                    child: Padding(
+                      padding: const EdgeInsets.all(6.0),
+                      child: Icon(
+                        Icons.add,
+                        size: 20,
+                        color: colorScheme.onPrimaryContainer,
+                      ),
                     ),
-                    padding: EdgeInsets.zero,
                   ),
                 ),
               ),

@@ -1,4 +1,4 @@
-import '../data/models/models.dart';
+import 'package:books/data/models/models.dart';
 
 class QueryResult {
   final int offset;
@@ -14,12 +14,13 @@ class QueryResult {
   });
 
   factory QueryResult.fromJson(Map<String, dynamic> json) => QueryResult(
-        offset: json['offset'] as int,
-        number: json['number'] as int,
-        totalResults: json['totalResults'] as int,
-        books: (json['books'] as List<dynamic>)
-            .map((e) => Book.fromJson(e as Map<String, dynamic>))
-            .toList(),
+        offset: json['offset'] as int? ?? 0,
+        number: json['number'] as int? ?? 0,
+        totalResults: json['totalResults'] as int? ?? 0,
+        books: (json['items'] as List<dynamic>?)
+                ?.map((e) => Book.fromJson(e as Map<String, dynamic>))
+                .toList() ??
+            const <Book>[],
       );
 
   Map<String, dynamic> toJson() => {

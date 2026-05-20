@@ -6,3 +6,4 @@ export 'myorders_page.dart';
 export 'account_page.dart';
 export 'bookstore_page.dart';
 export 'book_details_page.dart';
+export 'personal_info_page.dart';

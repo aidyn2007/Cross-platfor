@@ -60,57 +60,72 @@ class _ExplorePageState extends State<ExplorePage> {
                 ),
               ),
               SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'What would you like to read today?',
-                        style:
-                            Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: _searchController,
-                        textInputAction: TextInputAction.search,
-                        decoration: InputDecoration(
-                          hintText: 'Search for books or genres...',
-                          prefixIcon: const Icon(Icons.search),
-                          suffixIcon: IconButton(
-                            icon: const Icon(Icons.arrow_forward),
-                            onPressed: _submitSearch,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          filled: true,
-                          fillColor: Theme.of(context)
-                              .colorScheme
-                              .surfaceVariant
-                              .withOpacity(0.5),
+                child: AnimatedSlideFade(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'What would you like to read today?',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
-                        onSubmitted: (_) => _submitSearch(),
-                      ),
-                    ],
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _searchController,
+                          textInputAction: TextInputAction.search,
+                          decoration: InputDecoration(
+                            hintText: 'Search for books or genres...',
+                            prefixIcon: const Icon(Icons.search),
+                            suffixIcon: AnimatedTapScale(
+                              child: IconButton(
+                                icon: const Icon(Icons.arrow_forward),
+                                onPressed: _submitSearch,
+                              ),
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            filled: true,
+                            fillColor: Theme.of(context)
+                                .colorScheme
+                                .surfaceVariant
+                                .withOpacity(0.5),
+                          ),
+                          onSubmitted: (_) => _submitSearch(),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
               SliverToBoxAdapter(
-                child: BookstoreSection(
-                  bookstores: bookstores,
-                  cartManager: widget.cartManager,
-                  orderManager: widget.orderManager,
+                child: AnimatedSlideFade(
+                  delay: const Duration(milliseconds: 90),
+                  child: BookstoreSection(
+                    bookstores: bookstores,
+                    cartManager: widget.cartManager,
+                    orderManager: widget.orderManager,
+                  ),
                 ),
               ),
               SliverToBoxAdapter(
-                child: PostSection(posts: posts),
+                child: AnimatedSlideFade(
+                  delay: const Duration(milliseconds: 160),
+                  child: PostSection(posts: posts),
+                ),
               ),
               SliverToBoxAdapter(
-                child: CategorySection(categories: categories),
+                child: AnimatedSlideFade(
+                  delay: const Duration(milliseconds: 230),
+                  child: CategorySection(categories: categories),
+                ),
               ),
               const SliverToBoxAdapter(
                 child: SizedBox(height: 80),
@@ -119,7 +134,7 @@ class _ExplorePageState extends State<ExplorePage> {
           );
         } else {
           return const Center(
-            child: CircularProgressIndicator(),
+            child: AnimatedBookLoader(message: 'Opening the shelves...'),
           );
         }
       },

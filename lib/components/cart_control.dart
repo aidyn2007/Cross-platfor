@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'animated_widgets.dart';
 
 class CartControl extends StatefulWidget {
   final void Function(int) addToCart;
@@ -14,7 +15,7 @@ class _CartControlState extends State<CartControl> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       decoration: BoxDecoration(
@@ -38,9 +39,7 @@ class _CartControlState extends State<CartControl> {
     return IconButton.filledTonal(
       constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
       icon: const Icon(Icons.remove, size: 20),
-      onPressed: _cartNumber > 1 
-        ? () => setState(() => _cartNumber--)
-        : null,
+      onPressed: _cartNumber > 1 ? () => setState(() => _cartNumber--) : null,
       tooltip: 'Decrease quantity',
     );
   }
@@ -49,11 +48,21 @@ class _CartControlState extends State<CartControl> {
     return Container(
       constraints: const BoxConstraints(minWidth: 40),
       alignment: Alignment.center,
-      child: Text(
-        _cartNumber.toString(),
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.bold,
-          color: colorScheme.onSurface,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 180),
+        transitionBuilder: (child, animation) {
+          return ScaleTransition(
+            scale: animation,
+            child: FadeTransition(opacity: animation, child: child),
+          );
+        },
+        child: Text(
+          _cartNumber.toString(),
+          key: ValueKey<int>(_cartNumber),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
         ),
       ),
     );
@@ -71,14 +80,18 @@ class _CartControlState extends State<CartControl> {
   Widget _buildAddCartButton(ColorScheme colorScheme) {
     return Padding(
       padding: const EdgeInsets.only(right: 4.0),
-      child: FilledButton.icon(
-        style: FilledButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: AnimatedTapScale(
+        child: FilledButton.icon(
+          style: FilledButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          ),
+          onPressed: () => widget.addToCart(_cartNumber),
+          icon: const Icon(Icons.add_shopping_cart, size: 18),
+          label:
+              const Text('Add', style: TextStyle(fontWeight: FontWeight.bold)),
         ),
-        onPressed: () => widget.addToCart(_cartNumber),
-        icon: const Icon(Icons.add_shopping_cart, size: 18),
-        label: const Text('Add', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
     );
   }

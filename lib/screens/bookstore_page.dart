@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../components/components.dart';
-import '../constants.dart';
-import '../models/models.dart';
+import 'package:books/components/components.dart';
+import 'package:books/constants.dart';
+import 'package:books/models/models.dart';
 import 'checkout_page.dart';
 
 class BookstorePage extends StatefulWidget {
@@ -10,12 +10,11 @@ class BookstorePage extends StatefulWidget {
   final CartManager cartManager;
   final OrderManager ordersManager;
 
-  const BookstorePage({
-    super.key,
-    required this.bookstore,
-    required this.cartManager,
-    required this.ordersManager
-  });
+  const BookstorePage(
+      {super.key,
+      required this.bookstore,
+      required this.cartManager,
+      required this.ordersManager});
 
   @override
   State<BookstorePage> createState() => _BookstorePageState();
@@ -36,7 +35,6 @@ class _BookstorePageState extends State<BookstorePage> {
   }
 
   int calculateColumnCount(double screenWidth) {
-    const desktopThreshold = 700;
     return screenWidth > desktopThreshold ? 2 : 1;
   }
 
@@ -96,13 +94,23 @@ class _BookstorePageState extends State<BookstorePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(bookstore.name, style: textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold)),
+            Text(
+              bookstore.name,
+              style: textTheme.headlineLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 4),
             Row(
               children: [
                 const Icon(Icons.location_on, size: 16, color: Colors.grey),
                 const SizedBox(width: 4),
-                Expanded(child: Text(bookstore.address, style: textTheme.bodySmall)),
+                Expanded(
+                  child: Text(
+                    bookstore.address,
+                    style: textTheme.bodySmall,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -110,7 +118,12 @@ class _BookstorePageState extends State<BookstorePage> {
               children: [
                 const Icon(Icons.star, size: 16, color: Colors.amber),
                 const SizedBox(width: 4),
-                Text(bookstore.rating.toString(), style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold)),
+                Text(
+                  bookstore.rating.toString(),
+                  style: textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(width: 16),
                 const Icon(Icons.directions_walk, size: 16, color: Colors.grey),
                 const SizedBox(width: 4),
@@ -135,14 +148,17 @@ class _BookstorePageState extends State<BookstorePage> {
 
   Widget _buildGridItem(int index) {
     final item = widget.bookstore.items[index];
-    return Card(
-      elevation: 0,
-      color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
+    return AnimatedSlideFade(
+      delay: Duration(milliseconds: 45 * (index > 8 ? 8 : index)),
+      child: AnimatedTapScale(
         onTap: () => _showBottomSheet(item),
-        borderRadius: BorderRadius.circular(12),
-        child: BookstoreItem(item: item),
+        child: Card(
+          elevation: 0,
+          color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: BookstoreItem(item: item),
+        ),
       ),
     );
   }
@@ -152,7 +168,9 @@ class _BookstorePageState extends State<BookstorePage> {
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Text(
         title,
-        style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
       ),
     );
   }
@@ -202,11 +220,12 @@ class _BookstorePageState extends State<BookstorePage> {
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: ItemDetails(
-          item: item, 
+          item: item,
           cartManager: widget.cartManager,
           quantityUpdated: () {
             setState(() {});
-          },),
+          },
+        ),
       ),
     );
   }
@@ -215,7 +234,7 @@ class _BookstorePageState extends State<BookstorePage> {
     return SizedBox(
       width: drawerWidth,
       child: Drawer(
-        child: CheckoutPage(
+          child: CheckoutPage(
         cartManager: widget.cartManager,
         didUpdate: () {
           setState(() {});
@@ -223,7 +242,7 @@ class _BookstorePageState extends State<BookstorePage> {
         onSubmit: (order) {
           widget.ordersManager.addOrder(order);
           context.pop();
-          context.go('/${YummyTab.orders.value}');
+          context.go('/${BooksTab.orders.value}');
         },
       )),
     );
@@ -235,13 +254,18 @@ class _BookstorePageState extends State<BookstorePage> {
 
   Widget _buildFloatingActionButton() {
     if (widget.cartManager.items.isEmpty) return const SizedBox.shrink();
-    
-    return FloatingActionButton.extended(
-      onPressed: openDrawer,
-      tooltip: 'Cart',
-      elevation: 4,
-      icon: const Icon(Icons.shopping_cart),
-      label: Text('${widget.cartManager.items.length} Items in cart'),
+
+    return AnimatedSlideFade(
+      beginOffset: const Offset(0, 0.18),
+      child: AnimatedTapScale(
+        child: FloatingActionButton.extended(
+          onPressed: openDrawer,
+          tooltip: 'Cart',
+          elevation: 4,
+          icon: const Icon(Icons.shopping_cart),
+          label: Text('${widget.cartManager.items.length} Items in cart'),
+        ),
+      ),
     );
   }
 
