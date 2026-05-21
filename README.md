@@ -1,38 +1,38 @@
 # Books App - Midterm Project
 
-Приложение для управления личной библиотекой книг с системой лояльности и управлением профилем.
+A personal library management app with a loyalty system and profile management.
 
-## Реализованные функции
+## Implemented Features
 
-1.  **Система баллов (Loyalty Points):**
-    *   При добавлении любой книги в "Library List" пользователю начисляется **+100 баллов**.
-    *   Текущее количество баллов отображается в разделе **Account**.
-    *   Баллы рассчитываются динамически на основе количества сохраненных книг.
+1. **Loyalty Points System:**
+* Adding any book to the "Library List" awards the user +100 points.
+* The current point count is displayed in the **Account** section.
+* Points are calculated dynamically based on the number of saved books.
 
-2.  **Управление профилем (Personal Information):**
-    *   В разделе **Account** доступна кнопка "Personal Information".
-    *   Пользователь может изменить свое **Имя** и **Фамилию**.
-    *   Данные сохраняются локально и сразу обновляются в заголовке профиля.
+2. **Profile Management (Personal Information):**
+* The "Personal Information" button is available in the **Account** section.
+* The user can change their **First Name** and **Last Name**.
+* Data is saved locally and immediately updated in the profile header.
 
-## Тестирование
+## Testing
 
-Для проверки корректности работы этих функций написаны интеграционные тесты в файле `test/features_test.dart`.
+To verify the correct operation of these features, integration tests have been written in the `test/features_test.dart` file.
 
-### Что проверяют тесты:
-*   **Тест начисления баллов:** Проверяет, что при нажатии "Add to Library" счетчик баллов в аккаунте увеличивается соразмерно количеству книг (1 книга = 100 очков).
-*   **Тест навигации:** Проверяет корректный переход из настроек аккаунта на страницу редактирования профиля.
-*   **Тест обновления данных:** Проверяет, что после ввода нового имени и нажатия кнопки "Save", данные успешно обновляются на главной странице аккаунта.
+### What the tests check:
+* **Points Accrual Test:** Checks that clicking "Add to Library" increases the account's point counter proportionally to the number of books (1 book = 100 points).
+* **Navigation Test:** Checks that the transition from the account settings to the profile editing page works correctly.
+* **Data Update Test:** Checks that after entering a new name and clicking "Save," the data is successfully updated on the account main page.
 
-### Как запустить тесты:
+### How to run the tests:
 
-Откройте терминал в корне проекта и выполните команду:
+Open a terminal in the project root and run the command:
 
 ```sh
 flutter test test/features_test.dart
 ```
 
-## Технологический стек
-*   **State Management:** Flutter Riverpod
-*   **Navigation:** GoRouter
-*   **Local Storage:** SharedPreferences
-*   **Testing:** flutter_test
+## Tech Stack
+* **State Management:** Flutter Riverpod
+* **Navigation:** GoRouter
+* **Local Storage:** SharedPreferences
+* **Testing:** flutter_test
